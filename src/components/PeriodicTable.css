@@ -1,0 +1,184 @@
+/* Periodic Table Styling */
+.periodic-table-container {
+  background-color: #121212;
+  color: white;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.periodic-table {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.row {
+  display: flex;
+  gap: 2px;
+}
+
+.cell {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.element {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 3px;
+  padding: 4px;
+  box-sizing: border-box;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.element:hover {
+  transform: scale(1.1);
+  z-index: 10;
+}
+
+.element.empty {
+  background-color: transparent;
+}
+
+.atomic-number {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-size: 10px;
+}
+
+.symbol {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.name {
+  font-size: 8px;
+  text-align: center;
+  margin-top: 2px;
+}
+
+/* Element categories */
+.alkali {
+  background-color: #ff8a65;
+}
+
+.alkaline {
+  background-color: #ffb74d;
+}
+
+.transition {
+  background-color: #4fc3f7;
+}
+
+.post-transition {
+  background-color: #81c784;
+}
+
+.metalloid {
+  background-color: #9575cd;
+}
+
+.nonmetal {
+  background-color: #4db6ac;
+}
+
+.noble {
+  background-color: #7986cb;
+}
+
+.lanthanide {
+  background-color: #f06292;
+}
+
+.actinide {
+  background-color: #ba68c8;
+}
+
+/* Legend */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #1e1e1e;
+  border-radius: 5px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  margin: 5px;
+}
+
+.legend-color {
+  width: 15px;
+  height: 15px;
+  margin-right: 5px;
+  border-radius: 3px;
+}
+
+/* Apply colors to legend items */
+.legend-color.alkali { background-color: #ff8a65; }
+.legend-color.alkaline { background-color: #ffb74d; }
+.legend-color.transition { background-color: #4fc3f7; }
+.legend-color.post-transition { background-color: #81c784; }
+.legend-color.metalloid { background-color: #9575cd; }
+.legend-color.nonmetal { background-color: #4db6ac; }
+.legend-color.noble { background-color: #7986cb; }
+.legend-color.lanthanide { background-color: #f06292; }
+.legend-color.actinide { background-color: #ba68c8; }
+
+/* Responsive design */
+@media (max-width: 1200px) {
+  .cell {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .symbol {
+    font-size: 16px;
+  }
+  
+  .name {
+    font-size: 7px;
+  }
+}
+
+@media (max-width: 900px) {
+  .cell {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .symbol {
+    font-size: 14px;
+  }
+  
+  .name {
+    font-size: 6px;
+  }
+  
+  .atomic-number {
+    font-size: 8px;
+  }
+}
