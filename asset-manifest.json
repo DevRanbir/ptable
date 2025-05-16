@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/ptable/static/css/main.3e261307.css",
+    "main.js": "/ptable/static/js/main.fd26c8f4.js",
+    "index.html": "/ptable/index.html",
+    "main.3e261307.css.map": "/ptable/static/css/main.3e261307.css.map",
+    "main.fd26c8f4.js.map": "/ptable/static/js/main.fd26c8f4.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.3e261307.css",
+    "static/js/main.fd26c8f4.js"
+  ]
+}
