@@ -1,0 +1,235 @@
+import React, { useState, useEffect } from 'react';
+import './ElementChatbot.css';
+
+const ElementChatbot = ({ selectedElements, onClose }) => {
+  const [messages, setMessages] = useState([]);
+  const [inputValue, setInputValue] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [suggestedPrompts, setSuggestedPrompts] = useState([]);
+
+  // API key for Groq (in a real application, this should be stored securely on a backend)
+  const GROQ_API_KEY = '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';
+  
+  // Function to call Groq API using fetch instead of the SDK
+  const callGroqApi = async (messages) => {
+    try {
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${GROQ_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'gemma2-9b-it',
+          messages: messages
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return data.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response.";
+    } catch (error) {
+      console.error('Error calling Groq API:', error);
+      return "I'm sorry, there was an error processing your request. Please try again later.";
+    }
+  };
+
+  useEffect(() => {
+    // Generate initial message and suggested prompts when selected elements change
+    if (selectedElements && selectedElements.length > 0) {
+      const initialMessage = generateInitialMessage(selectedElements);
+      setMessages([{ role: 'system', content: initialMessage }]);
+      generateSuggestedPrompts(selectedElements);
+    }
+  }, [selectedElements]);
+
+  // Generate initial message based on selected elements
+  const generateInitialMessage = (elements) => {
+    if (elements.length === 1) {
+      return `Hello! I'm your chemistry teacher assistant. You've selected ${elements[0].name} (${elements[0].symbol}). What would you like to know about it?`;
+    } else {
+      const elementNames = elements.map(el => `${el.name} (${el.symbol})`).join(', ');
+      return `Hello! I'm your chemistry teacher assistant. You've selected multiple elements: ${elementNames}. What would you like to know about these elements?`;
+    }
+  };
+
+  // Generate suggested prompts based on selected elements
+  const generateSuggestedPrompts = (elements) => {
+    const prompts = [];
+    
+    if (elements.length === 1) {
+      const element = elements[0];
+      prompts.push(
+        `Tell me about the properties of ${element.name}`,
+        `What are the main uses of ${element.name}?`,
+        `Explain the electron configuration of ${element.name}`,
+        `What makes ${element.name} unique?`
+      );
+      
+      // Add specific prompts based on element properties
+      if (element.series) {
+        prompts.push(`Why is ${element.name} classified as a ${element.series}?`);
+      }
+      
+      if (element.discovered) {
+        prompts.push(`Tell me about the discovery of ${element.name}`);
+      }
+    } else {
+      // Multiple elements selected
+      prompts.push(
+        'Compare the properties of these elements',
+        'What do these elements have in common?',
+        'Explain the trends across these elements',
+        'How do these elements interact with each other?'
+      );
+      
+      // Check if elements are in the same group/period/block
+      const categories = elements.map(el => el.series);
+      const uniqueCategories = [...new Set(categories)];
+      
+      if (uniqueCategories.length === 1) {
+        prompts.push(`Why are all these elements classified as ${uniqueCategories[0]}?`);
+      } else if (uniqueCategories.length < elements.length) {
+        prompts.push('Explain the different categories these elements belong to');
+      }
+      
+      // Check for anomalies
+      prompts.push('Are there any anomalies or exceptions among these elements?');
+    }
+    
+    setSuggestedPrompts(prompts);
+  };
+
+  // Handle sending a message
+  const handleSendMessage = async (content) => {
+    if (!content.trim() && !isLoading) return;
+    
+    // Add user message to chat
+    const userMessage = { role: 'user', content };
+    setMessages(prev => [...prev, userMessage]);
+    setInputValue('');
+    setIsLoading(true);
+    
+    try {
+      // Prepare context about the selected elements
+      let elementContext = '';
+      selectedElements.forEach(element => {
+        elementContext += `\nElement: ${element.name} (${element.symbol})\n`;
+        elementContext += `Atomic Number: ${element.atomic_number}\n`;
+        elementContext += `Atomic Mass: ${element.atomic_mass}\n`;
+        elementContext += `Category: ${element.series || 'Unknown'}\n`;
+        elementContext += `Phase at Room Temperature: ${element.phase || 'Unknown'}\n`;
+        elementContext += `Electron Configuration: ${element.electron_configuration || 'Unknown'}\n`;
+        elementContext += `Electronegativity: ${element.electronegativity_pauling || 'Unknown'}\n`;
+        elementContext += `Discovered: ${element.discovered ? `${element.discovered.year} by ${element.discovered.by}` : 'Unknown'}\n`;
+        elementContext += `Melting Point: ${element.melting_point || 'Unknown'} K\n`;
+        elementContext += `Boiling Point: ${element.boiling_point || 'Unknown'} K\n`;
+        if (element.abundance) {
+          elementContext += `Abundance in Earth's crust: ${element.abundance.crust || 'Unknown'}%\n`;
+        }
+        elementContext += '---\n';
+      });
+      
+      // Prepare messages for API call
+      const apiMessages = [
+        {
+          role: 'system',
+          content: `You are a knowledgeable and enthusiastic chemistry teacher explaining elements to a student. \n\nHere is information about the element(s) the student has selected:\n${elementContext}\n\nRespond in a friendly, educational manner. Explain concepts clearly as if teaching a student. Include interesting facts and real-world applications when relevant. If there are any anomalies or special properties worth noting, mention them. Keep your responses concise (under 250 words) but informative.`
+        },
+        ...messages.filter(msg => msg.role !== 'system'),
+        userMessage
+      ];
+      
+      // Call Groq API with fetch
+      const responseContent = await callGroqApi(apiMessages);
+      
+      // Add AI response to chat
+      const aiMessage = { 
+        role: 'assistant', 
+        content: responseContent
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error('Error in handleSendMessage:', error);
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: "I'm sorry, there was an error processing your request. Please try again later."
+      }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle clicking a suggested prompt
+  const handlePromptClick = (prompt) => {
+    handleSendMessage(prompt);
+  };
+
+  return (
+    <div className="element-chatbot">
+      <div className="chatbot-header">
+        <h3>Chemistry Teacher Assistant</h3>
+        <button className="close-btn" onClick={onClose}>×</button>
+      </div>
+      
+      <div className="chatbot-messages">
+        {messages.map((message, index) => (
+          <div 
+            key={index} 
+            className={`message ${message.role === 'user' ? 'user-message' : 'assistant-message'}`}
+          >
+            {message.content}
+          </div>
+        ))}
+        {isLoading && (
+          <div className="message assistant-message loading">
+            <div className="loading-dots">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+        )}
+      </div>
+      
+      {suggestedPrompts.length > 0 && (
+        <div className="suggested-prompts">
+          <h4>Suggested Questions:</h4>
+          <div className="prompt-buttons">
+            {suggestedPrompts.map((prompt, index) => (
+              <button 
+                key={index} 
+                className="prompt-btn"
+                onClick={() => handlePromptClick(prompt)}
+              >
+                {prompt}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      
+      <div className="chatbot-input">
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          placeholder="Ask something about the element(s)..."
+          onKeyPress={(e) => e.key === 'Enter' && handleSendMessage(inputValue)}
+          disabled={isLoading}
+        />
+        <button 
+          onClick={() => handleSendMessage(inputValue)}
+          disabled={isLoading || !inputValue.trim()}
+        >
+          Send
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default ElementChatbot;
