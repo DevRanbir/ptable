@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './TaskBar.css';
 import { FaChevronDown, FaChevronUp, FaFilter, FaInfoCircle, FaRobot, FaTable, FaPalette } from 'react-icons/fa';
 
@@ -12,14 +12,35 @@ const TaskBar = ({
   getHighlightedElements
 }) => {
   const [openSection, setOpenSection] = useState(null);
-  
+  const taskbarRef = useRef(null); // Create a ref for the taskbar element
+
   // Toggle section open/close
   const toggleSection = (section) => {
     setOpenSection(openSection === section ? null : section);
   };
 
+  // Effect to handle clicks outside the taskbar
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Check if the click is outside the taskbar element
+      if (taskbarRef.current && !taskbarRef.current.contains(event.target)) {
+        setOpenSection(null); // Close the dropdown
+      }
+    };
+
+    // Add event listener when a section is open
+    if (openSection !== null) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    // Cleanup: Remove event listener when component unmounts or section closes
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [openSection]); // Re-run effect when openSection changes
+
   return (
-    <div className="taskbar">
+    <div className="taskbar" ref={taskbarRef}> {/* Attach the ref to the taskbar div */}
       <div className="taskbar-content">
         {/* Left section - Legends */}
         <div className="taskbar-left">
@@ -122,7 +143,7 @@ const TaskBar = ({
           </button>
           
           {openSection === 'filters' && (
-            <div className="taskbar-dropdown filters-dropdown">
+            <div className="taskbar-dropdown2 filters-dropdown">
               <div className="filter-categories">
                 <div className="filter-category">
                   <h4>Block Filters</h4>
@@ -334,7 +355,7 @@ const TaskBar = ({
             title="Open Chemistry Teacher Assistant"
           >
             <FaRobot />
-            <span className="button-text">Chemistry Assistant</span>
+            <span className="button-text">Chemistry Lab</span>
           </button>
         </div>
       </div>

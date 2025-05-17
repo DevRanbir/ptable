@@ -19,6 +19,31 @@ const PeriodicTable = () => {
   // State for chatbot
   const [showChatbot, setShowChatbot] = useState(false);
   const [selectedElements, setSelectedElements] = useState([]);
+
+  // Function to handle element selection
+  const handleElementClick = (element, event) => {
+    event.preventDefault();
+    
+    setSelectedElements(prevSelected => {
+      const isAlreadySelected = prevSelected.some(el => el.atomic_number === element.atomic_number);
+      
+      if (event.ctrlKey || event.metaKey) {
+        // Multi-select with Ctrl/Cmd key
+        if (isAlreadySelected) {
+          return prevSelected.filter(el => el.atomic_number !== element.atomic_number);
+        } else {
+          return [...prevSelected, element];
+        }
+      } else {
+        // Single select without Ctrl/Cmd key
+        if (isAlreadySelected && prevSelected.length === 1) {
+          return []; // Deselect if it's the only selected element
+        } else {
+          return [element];
+        }
+      }
+    });
+  };
   
   // Get highlighted elements based on active filters
   const getHighlightedElements = () => {
@@ -59,20 +84,19 @@ const PeriodicTable = () => {
     }
   };
   
-  // Function to handle right click on element
+  // Function to handle right click
   const handleRightClick = (element, event) => {
-    event.preventDefault(); // Prevent default context menu
+    event.preventDefault();
     
-    if (activeFilters.length > 0) {
-      // If filters are active, get all highlighted elements
-      const highlightedElements = getHighlightedElements();
-      setSelectedElements(highlightedElements);
-    } else {
-      // Otherwise just use the clicked element
-      setSelectedElements([element]);
-    }
-    
-    setShowChatbot(true);
+    setSelectedElements(prevSelected => {
+      const isAlreadySelected = prevSelected.some(el => el.atomic_number === element.atomic_number);
+      
+      if (isAlreadySelected) {
+        return prevSelected.filter(el => el.atomic_number !== element.atomic_number);
+      } else {
+        return [...prevSelected, element];
+      }
+    });
   };
   
   // Function to close chatbot
@@ -188,7 +212,7 @@ const PeriodicTable = () => {
   };
 
   // Function to render an element card
-  const renderElement = (atomicNumber) => {
+  const renderElement = (atomicNumber, rowIndex, colIndex) => {
     if (!atomicNumber) return <div className="element empty"></div>;
     
     const element = elementMap[atomicNumber];
@@ -210,17 +234,51 @@ const PeriodicTable = () => {
     
     // Check if element matches the filter
     const isHighlighted = matchesFilter(element);
+
+    const isSelected = selectedElements.some(el => el.atomic_number === element.atomic_number);
+    
+    // Calculate group and period numbers
+    // For main table (rows 0-6), the period is rowIndex + 1
+    // For lanthanides and actinides (rows 8-9), special handling
+    let period = rowIndex + 1;
+    let group = colIndex + 1;
+    
+    // Special handling for lanthanides and actinides
+    if (rowIndex >= 8) {
+      period = rowIndex === 8 ? 6 : 7; // Lanthanides are period 6, actinides are period 7
+      // These elements don't have traditional group numbers
+      group = 0;
+    }
+
+    // Determine the class names
+    let elementClasses = `element ${category}`;
+    // Add filter classes (highlighted/faded)
+    if (activeFilters.length > 0) {
+      elementClasses += isHighlighted ? ' highlighted' : ' faded';
+    }
+
+    // Add selected class and fade non-selected elements if any are selected
+    if (selectedElements.length > 0) {
+      elementClasses += isSelected ? ' selected' : ' faded';
+    }
     
     return (
-      <div 
-        className={`element ${category} ${activeFilters.length > 0 ? (isHighlighted ? 'highlighted' : 'faded') : ''}`} 
+      <div
+        className={elementClasses}
         key={element.atomic_number}
+        onClick={(e) => handleElementClick(element, e)}
+        onContextMenu={(e) => handleRightClick(element, e)}
         onMouseEnter={(e) => handleMouseEnter(element, e)}
         onMouseLeave={handleMouseLeave}
         onMouseMove={handleMouseMove}
-        onContextMenu={(e) => handleRightClick(element, e)}
       >
         <div className="atomic-number">{element.atomic_number}</div>
+        {showGroupPeriod && (
+          <div className="group-period-indicators">
+            {group && <div className="group-indicator">G{group}</div>}
+            <div className="period-indicator">P{period}</div>
+          </div>
+        )}
         <div className="symbol">{element.symbol}</div>
         <div className="name">{element.name}</div>
       </div>
@@ -265,38 +323,20 @@ const PeriodicTable = () => {
   };
 
   // Function to handle opening the chatbot with selected elements
-  const handleOpenChatbot = (elements) => {
-    if (elements && elements.length > 0) {
-      setSelectedElements(elements);
-    } else {
-      // If no elements are provided, use the first element as default
-      setSelectedElements([elementMap[1]]);
+  const handleOpenChatbot = () => {
+    if (selectedElements.length > 0) {
+      setShowChatbot(true);
     }
-    setShowChatbot(true);
   };
 
   return (
     <div className="periodic-table-container">
      
       <div className="periodic-table-wrapper">
-        {/* Group numbers (top) */}
-        {showGroupPeriod && (
-          <div className="group-numbers">
-            {Array.from({ length: 18 }, (_, i) => (
-              <div key={i} className="group-number">{i + 1}</div>
-            ))}
-          </div>
-        )}
+        
         
         <div className="periodic-table-with-periods">
-          {/* Period numbers (left) */}
-          {showGroupPeriod && (
-            <div className="period-numbers">
-              {periodicTableLayout.map((_, rowIndex) => (
-                <div key={rowIndex} className="period-number">{rowIndex + 1}</div>
-              ))}
-            </div>
-          )}
+          
 
           {/* Name Image */}
           <img src={image} alt="Periodic Table Title" className="name-image" />
@@ -308,7 +348,7 @@ const PeriodicTable = () => {
               <div className="row" key={rowIndex}>
                 {row.map((atomicNumber, colIndex) => (
                   <div className="cell" key={`${rowIndex}-${colIndex}`}>
-                    {renderElement(atomicNumber)}
+                    {renderElement(atomicNumber, rowIndex, colIndex)}
                   </div>
                 ))}
               </div>
@@ -323,10 +363,11 @@ const PeriodicTable = () => {
         position={tooltipPosition} 
       />
       
-      {showChatbot && (
+      {showChatbot && selectedElements.length > 0 && (
         <ElementChatbot 
           selectedElements={selectedElements}
           onClose={handleCloseChatbot}
+          showCombine={selectedElements.length > 1}
         />
       )}
       <TaskBar 
@@ -337,6 +378,7 @@ const PeriodicTable = () => {
         toggleGroupPeriod={toggleGroupPeriod}
         openChatbot={handleOpenChatbot}
         getHighlightedElements={getHighlightedElements}
+        selectedElements={selectedElements}
       />
     </div>
   );

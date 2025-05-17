@@ -120,7 +120,7 @@ h1 {
   content: "";
   position: absolute;
   bottom: 2px;
-  right: 2px;
+  left: 2px;
   width: 6px;
   height: 6px;
   border-radius: 50%;
@@ -144,6 +144,30 @@ h1 {
   background-color: transparent;
 }
 
+.group-period-indicators {
+  position: absolute;
+  top: 2.5px;
+  right: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 8px;
+  line-height: 1;
+
+}
+
+.group-indicator, .period-indicator {
+  font-size: 7px;
+
+  padding: 1px 2px;
+  border-radius: 2px;
+  margin-bottom: 1px;
+}
+
+.period-indicator{
+  margin-top: 34px !important;
+}
+/* Adjust atomic number position to avoid overlap */
 .atomic-number {
   position: absolute;
   top: 2px;
@@ -151,9 +175,41 @@ h1 {
   font-size: 10px;
 }
 
+/* Adjust element layout to accommodate the indicators */
+.element {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 3px;
+  padding: 4px;
+  box-sizing: border-box;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+/* Adjust symbol position */
 .symbol {
   font-size: 18px;
   font-weight: bold;
+  margin-top: 2px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .group-indicator, .period-indicator {
+    font-size: 6px;
+    padding: 1px;
+  }
+}
+
+@media (max-width: 900px) {
+  .group-indicator, .period-indicator {
+    font-size: 5px;
+  }
 }
 
 .name {
@@ -333,17 +389,6 @@ h1 {
   box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }
 
-/* Active filters display */
-.active-filters {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin-top: 15px;
-  padding: 10px;
-  background-color: #2a2a2a;
-  border-radius: 4px;
-}
 
 .active-filter-tag {
   background-color: #007bff;
@@ -556,10 +601,26 @@ h1 {
 .name-image {
   max-width: 500px;
   height: auto;
-  margin-top: 60px;
+  margin-top: 55px;
   z-index: 1;
   position: absolute;
-  left: 15%;
+  left: 18%;
   filter: invert(1);
   pointer-events: none;
+}
+
+.element.selected {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  z-index: 10;
+  
+}
+
+.element.selected:hover {
+  transform: scale(1.1);
+}
+
+/* Add transition for smooth selection effect */
+.element {
+  transition: transform 0.2s, box-shadow 0.2s;
 }

@@ -96,16 +96,28 @@
   bottom: 100%;
   left: 50%;
   transform: translateX(-50%);
-  background-color: #2a2a2a;
+  background-color: #000000dd;
   border-radius: 4px;
   box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.3);
   padding: 15px;
   margin-bottom: 10px;
   z-index: 1001;
   max-height: 70vh;
-  overflow-y: auto;
-  min-width: 300px;
 }
+
+.taskbar-dropdown2 {
+    position: absolute;
+    bottom: 100%;
+    left: -130%;
+    background-color: #000000dd;
+    border-radius: 4px;
+    box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    margin-bottom: 12px;
+    z-index: 1001;
+    max-height: 70vh;
+    min-width: 300px;
+  }
 
 /* Arrow at the bottom of dropdown */
 .taskbar-dropdown::after {
@@ -122,12 +134,10 @@
 /* Filters dropdown specific styles */
 .filters-dropdown {
   width: 80vw;
-  max-width: 1000px;
 }
 
 .legends-dropdown {
-  width: 300px;
-  max-width: 350px;
+  width: 190px;
 }
 
 .legends-container {
@@ -149,7 +159,6 @@
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s;
-  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .legend-item:hover {
@@ -233,7 +242,7 @@
 }
 
 .filter-btn {
-  background-color: #333;
+  background-color: #33333300;
   color: white;
   border: none;
   padding: 6px 10px;
@@ -294,7 +303,7 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 12px;
-  margin-left: auto;
+
 }
 
 /* Legend dropdown specific styles */
