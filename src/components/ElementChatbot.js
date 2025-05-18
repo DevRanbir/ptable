@@ -1,5 +1,108 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './ElementChatbot.css';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis,Cell, Tooltip, ResponsiveContainer} from 'recharts';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+
+function CombinationResultView({ result }) {
+  // If result is a string (from the initial condition check), render it directly
+  if (typeof result === 'string') {
+    return <div className="notification">{result}</div>;
+  }
+  
+  // Handle loading state
+  if (!result) {
+    return null;
+  }
+  
+  // Display different UI based on status
+  const renderContent = () => {
+    switch (result.status) {
+      case "error":
+        return (
+          <div className="error-container">
+            <h3>Error</h3>
+            <p>{result.summary}</p>
+            <p>{result.description}</p>
+          </div>
+        );
+        
+      case "parse_error":
+        return (
+          <div className="parse-error-container">
+            <h3>{result.title}</h3>
+            <p>{result.summary}</p>
+            <pre className="raw-response">{result.description}</pre>
+          </div>
+        );
+        
+      case "complex_combination":
+        return (
+          <div className="complex-combination-container">
+            <h3>{result.title}</h3>
+            <div className="complex-explanation">
+              <pre className="formatted-response">{result.description}</pre>
+            </div>
+            <div className="elements-combined">
+              <h4>Elements Attempted</h4>
+              <p>{result.elements}</p>
+            </div>
+          </div>
+        );
+        
+      case "success":
+      default:
+        return (
+          <>
+            <div className="compound-header">
+              <h2>{result.title}</h2>
+              <h3 className="formula">{result.formula}</h3>
+            </div>
+            
+            <div className="compound-summary">
+              <p>{result.summary}</p>
+            </div>
+            
+            <div className="compound-details">
+              <h4>Type</h4>
+              <p>{result.type}</p>
+              
+              <h4>Description</h4>
+              <p>{result.description}</p>
+              
+              <h4>Properties</h4>
+              <ul>
+                <li><strong>Category:</strong> {result.category}</li>
+                <li><strong>Structure:</strong> {result.structure}</li>
+                <li><strong>Conductivity:</strong> {result.conductivity}</li>
+              </ul>
+              
+              {result.applications && result.applications.length > 0 && (
+                <>
+                  <h4>Applications</h4>
+                  <ul className="applications-list">
+                    {result.applications.map((app, index) => (
+                      <li key={index}>{app}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </div>
+            
+            <div className="elements-combined">
+              <h4>Elements Combined</h4>
+              <p>{result.elements}</p>
+            </div>
+          </>
+        );
+    }
+  };
+  
+  return (
+    <div className="combination-result">
+      {renderContent()}
+    </div>
+  );
+}
 
 const ElementChatbot = ({ selectedElements, onClose, activeFilters }) => {
   // State for managing tabs and chat functionality
@@ -10,9 +113,11 @@ const ElementChatbot = ({ selectedElements, onClose, activeFilters }) => {
   const [suggestedPrompts, setSuggestedPrompts] = useState([]);
   const [combinationResult, setCombinationResult] = useState(null);
   const [selectedForCombination, setSelectedForCombination] = useState([]);
+  const [activeSubTab, setActiveSubTab] = useState('properties'); // 'properties' or 'trends'
   const messagesEndRef = useRef(null);
-  // State to track if the user has sent a message
+  const [isDataLoading, setIsDataLoading] = useState(false);
   const [hasUserSentMessage, setHasUserSentMessage] = useState(false);
+  const [hoveredElementSymbol, setHoveredElementSymbol] = useState(null);
 
   // API key for Groq (in a real application, this should be stored securely on a backend)
   const GROQ_API_KEY = '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';
@@ -42,6 +147,865 @@ const ElementChatbot = ({ selectedElements, onClose, activeFilters }) => {
       console.error('Error calling Groq API:', error);
       return "I'm sorry, there was an error processing your request. Please try again later.";
     }
+  };
+
+  // Function to format AI response text
+  const formatAIResponse = (text) => {
+    // Handle bold text (**text**)
+    text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    
+    // Handle italic text (*text*)
+    text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    
+    // Handle bullet points
+    text = text.replace(/^- (.+)$/gm, '<li>$1</li>');
+    text = text.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+    
+    // Handle numbered lists
+    text = text.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+    text = text.replace(/(<li>.*<\/li>)/s, '<ol>$1</ol>');
+    
+    // Handle code blocks
+    text = text.replace(/```([^`]+)```/g, '<pre><code>$1</code></pre>');
+    
+    // Handle inline code
+    text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+    
+    // Handle links [text](url)
+    text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+    
+    // Split by newlines and wrap each line
+    return text.split('\n').map((item, key) => (
+      <React.Fragment key={key}>
+        <span dangerouslySetInnerHTML={{ __html: item }} />
+        <br />
+      </React.Fragment>
+    ));
+  };
+
+   // Function to prepare data for charts
+   const prepareChartData = (property, subProperty = null) => {
+    return selectedElements.map(element => ({
+      name: element.symbol,
+      value: subProperty ? element[property]?.[subProperty] : element[property],
+      fullName: element.name
+    })).filter(item => item.value !== undefined)
+      .sort((a, b) => a.value - b.value);
+  };
+
+  // Update useEffect to handle loading state
+  useEffect(() => {
+    if (activeTab === 'compare') {
+      setIsDataLoading(true);
+      // Simulate data loading delay
+      const timer = setTimeout(() => {
+        setIsDataLoading(false);
+      }, 3600);
+      return () => clearTimeout(timer);
+    }
+  }, [activeTab, activeSubTab, selectedElements]);
+
+   // Function to prepare trend data (properties vs atomic number)
+   const prepareTrendData = () => {
+    return selectedElements.map(element => ({
+      name: element.symbol,
+      fullName: element.name,
+      atomic_number: element.atomic_number,
+      atomic_radius: element.radius?.calculated,
+      ionization_energy: element.ionization_energies?.[0],
+      electronegativity: element.electronegativity_pauling,
+      electron_affinity: element.electron_affinity,
+      melting_point: element.melting_point,
+      boiling_point: element.boiling_point
+    })).sort((a, b) => a.atomic_number - b.atomic_number);
+  };
+
+  // Function to render trend charts
+  const renderTrendCharts = () => {
+    const data = prepareTrendData();
+    
+    return (
+      <div className="trend-charts">
+        {/* Atomic Radius vs Atomic Number */}
+        <div className="chart-container">
+          <h4>Atomic Radius vs Atomic Number</h4>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={data}>
+              <XAxis dataKey="atomic_number" label={{ value: 'Atomic Number', position: 'insideBottom' , offset: -5}} />
+              <YAxis label={{ value: 'Atomic Radius(pm)  ', angle: -90, position: 'insideLeft', offset: 10 }} />
+              <Tooltip
+                content={({ payload, label }) => {
+                  if (payload && payload.length) {
+                    const element = payload[0].payload;
+                    return (
+                      <div className={`custom-tooltip ${element.name === hoveredElementSymbol ? 'highlighted-tooltip' : ''}`}>
+                        <p>{`${element.fullName} (${element.name})`}</p>
+                        <p>{`Atomic Number: ${label}`}</p>
+                        <p>{`Atomic Radius: ${payload[0].value} pm`}</p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="atomic_radius"
+                stroke="#9c27b0"
+                dot={(props) => {
+                  const { cx, cy, stroke, key, payload } = props;
+                  const isHovered = payload.name === hoveredElementSymbol;
+                  return (
+                    <circle
+                      key={key}
+                      cx={cx}
+                      cy={cy}
+                      r={isHovered ? 8 : 4} // Larger radius when hovered
+                      stroke={stroke}
+                      strokeWidth={isHovered ? 3 : 1} // Thicker stroke when hovered
+                      fill={isHovered ? '#fff' : stroke} // White fill when hovered
+                      className={isHovered ? 'highlighted-dot' : ''} // Add class for CSS animation/style
+                    />
+                  );
+                }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Ionization Energy vs Atomic Number */}
+        <div className="chart-container">
+          <h4>First Ionization Energy vs Atomic Number</h4>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={data}>
+              <XAxis dataKey="atomic_number" label={{ value: 'Atomic Number', position: 'insideBottom', offset: -5 }} />
+              <YAxis label={{ value: 'Ionization Energy', angle: -90,position: 'insideLeft', offset: 0 }} />
+              <Tooltip
+                content={({ payload, label }) => {
+                  if (payload && payload.length) {
+                    const element = payload[0].payload;
+                    return (
+                      <div className={`custom-tooltip ${element.name === hoveredElementSymbol ? 'highlighted-tooltip' : ''}`}>
+                        <p>{`${element.fullName} (${element.name})`}</p>
+                        <p>{`Atomic Number: ${label}`}</p>
+                        <p>{`Ionization Energy: ${payload[0].value} kJ/mol`}</p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="ionization_energy"
+                stroke="#673ab7"
+                 dot={(props) => {
+                  const { cx, cy, stroke, key, payload } = props;
+                  const isHovered = payload.name === hoveredElementSymbol;
+                  return (
+                    <circle
+                      key={key}
+                      cx={cx}
+                      cy={cy}
+                      r={isHovered ? 8 : 4}
+                      stroke={stroke}
+                      strokeWidth={isHovered ? 3 : 1}
+                      fill={isHovered ? '#fff' : stroke}
+                      className={isHovered ? 'highlighted-dot' : ''}
+                    />
+                  );
+                }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Electronegativity vs Atomic Number */}
+        <div className="chart-container">
+          <h4>Electronegativity vs Atomic Number</h4>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={data}>
+              <XAxis dataKey="atomic_number" label={{ value: 'Atomic Number', position: 'insideBottom' , offset: -5 }} />
+              <YAxis label={{ value: 'Electronegativity', angle: -90,position: 'insideLeft', offset: 10 }} />
+              <Tooltip
+                content={({ payload, label }) => {
+                  if (payload && payload.length) {
+                    const element = payload[0].payload;
+                    return (
+                      <div className={`custom-tooltip ${element.name === hoveredElementSymbol ? 'highlighted-tooltip' : ''}`}>
+                        <p>{`${element.fullName} (${element.name})`}</p>
+                        <p>{`Atomic Number: ${label}`}</p>
+                        <p>{`Electronegativity: ${payload[0].value}`}</p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="electronegativity"
+                stroke="#ff4081"
+                 dot={(props) => {
+                  const { cx, cy, stroke, key, payload } = props;
+                  const isHovered = payload.name === hoveredElementSymbol;
+                  return (
+                    <circle
+                      key={key}
+                      cx={cx}
+                      cy={cy}
+                      r={isHovered ? 8 : 4}
+                      stroke={stroke}
+                      strokeWidth={isHovered ? 3 : 1}
+                      fill={isHovered ? '#fff' : stroke}
+                      className={isHovered ? 'highlighted-dot' : ''}
+                    />
+                  );
+                }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Electron Affinity vs Atomic Number */}
+        <div className="chart-container">
+          <h4>Electron Affinity vs Atomic Number</h4>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={data}>
+              <XAxis dataKey="atomic_number" label={{ value: 'Atomic Number', position: 'insideBottom' , offset: -5 }} />
+              <YAxis label={{ value: 'Electron Affinity', angle: -90,position: 'insideLeft', offset: 10}} />
+              <Tooltip
+                content={({ payload, label }) => {
+                  if (payload && payload.length) {
+                    const element = payload[0].payload;
+                    return (
+                      <div className={`custom-tooltip ${element.name === hoveredElementSymbol ? 'highlighted-tooltip' : ''}`}>
+                        <p>{`${element.fullName} (${element.name})`}</p>
+                        <p>{`Atomic Number: ${label}`}</p>
+                        <p>{`Electron Affinity: ${payload[0].value} kJ/mol`}</p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="electron_affinity"
+                stroke="#009688"
+                 dot={(props) => {
+                  const { cx, cy, stroke, key, payload } = props;
+                  const isHovered = payload.name === hoveredElementSymbol;
+                  return (
+                    <circle
+                      key={key}
+                      cx={cx}
+                      cy={cy}
+                      r={isHovered ? 8 : 4}
+                      stroke={stroke}
+                      strokeWidth={isHovered ? 3 : 1}
+                      fill={isHovered ? '#fff' : stroke}
+                      className={isHovered ? 'highlighted-dot' : ''}
+                    />
+                  );
+                }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Melting Point vs Atomic Number */}
+        <div className="chart-container">
+          <h4>Melting Point vs Atomic Number</h4>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={data}>
+              <XAxis dataKey="atomic_number" label={{ value: 'Atomic Number', position: 'insideBottom' , offset: -5}} />
+              <YAxis label={{ value: 'Melting Point (K)', angle: -90, position: 'insideLeft', offset: 10 }} />
+              <Tooltip
+                content={({ payload, label }) => {
+                  if (payload && payload.length) {
+                    const element = payload[0].payload;
+                    return (
+                      <div className={`custom-tooltip ${element.name === hoveredElementSymbol ? 'highlighted-tooltip' : ''}`}>
+                        <p>{`${element.fullName} (${element.name})`}</p>
+                        <p>{`Atomic Number: ${label}`}</p>
+                        <p>{`Melting Point: ${payload[0].value} K`}</p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="melting_point"
+                stroke="#ff9800"
+                 dot={(props) => {
+                  const { cx, cy, stroke, key, payload } = props;
+                  const isHovered = payload.name === hoveredElementSymbol;
+                  return (
+                    <circle
+                      key={key}
+                      cx={cx}
+                      cy={cy}
+                      r={isHovered ? 8 : 4}
+                      stroke={stroke}
+                      strokeWidth={isHovered ? 3 : 1}
+                      fill={isHovered ? '#fff' : stroke}
+                      className={isHovered ? 'highlighted-dot' : ''}
+                    />
+                  );
+                }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Boiling Point vs Atomic Number */}
+        <div className="chart-container">
+          <h4>Boiling Point vs Atomic Number</h4>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={data}>
+              <XAxis dataKey="atomic_number" label={{ value: 'Atomic Number', position: 'insideBottom' , offset: -5 }} />
+              <YAxis label={{ value: 'Boiling Point (K)', angle: -90, position: 'insideLeft', offset: 10 }} />
+              <Tooltip
+                content={({ payload, label }) => {
+                  if (payload && payload.length) {
+                    const element = payload[0].payload;
+                    return (
+                      <div className={`custom-tooltip ${element.name === hoveredElementSymbol ? 'highlighted-tooltip' : ''}`}>
+                        <p>{`${element.fullName} (${element.name})`}</p>
+                        <p>{`Atomic Number: ${label}`}</p>
+                        <p>{`Boiling Point: ${payload[0].value} K`}</p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="boiling_point"
+                stroke="#00bcd4"
+                 dot={(props) => {
+                  const { cx, cy, stroke, key, payload } = props;
+                  const isHovered = payload.name === hoveredElementSymbol;
+                  return (
+                    <circle
+                      key={key}
+                      cx={cx}
+                      cy={cy}
+                      r={isHovered ? 8 : 4}
+                      stroke={stroke}
+                      strokeWidth={isHovered ? 3 : 1}
+                      fill={isHovered ? '#fff' : stroke}
+                      className={isHovered ? 'highlighted-dot' : ''}
+                    />
+                  );
+                }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    );
+  };
+
+  // Function to prepare abundance average data
+  const prepareAbundanceData = () => {
+    return selectedElements.map(element => {
+      const abundanceValues = element.abundance ? Object.values(element.abundance) : [];
+      const avgAbundance = abundanceValues.length > 0
+        ? abundanceValues.reduce((a, b) => a + b, 0) / abundanceValues.length
+        : undefined;
+      return {
+        name: element.symbol,
+        value: avgAbundance,
+        fullName: element.name,
+        details: element.abundance
+      };
+    }).filter(item => item.value !== undefined)
+      .sort((a, b) => a.value - b.value);
+  };
+
+  // Function to prepare discovery timeline data
+  const prepareDiscoveryData = () => {
+    return selectedElements
+      .filter(element => element.discovered)
+      .map(element => ({
+        name: element.symbol,
+        value: parseInt(element.discovered.year),
+        fullName: element.name,
+        discoveredBy: element.discovered.by
+      }))
+      .sort((a, b) => a.value - b.value);
+  };
+
+  // Function to prepare ionization energies data
+  const prepareIonizationData = () => {
+    return selectedElements.map(element => ({
+      name: element.symbol,
+      value: element.ionization_energies?.[0],
+      fullName: element.name
+    })).filter(item => item.value !== undefined)
+      .sort((a, b) => a.value - b.value);
+  };
+
+  // Update the comparison tab render function
+  const renderComparisonContent = () => {
+    if (selectedElements.length < 2) {
+      return (
+        <div className="comparison-message">
+          Please select at least two elements to compare.
+        </div>
+      );
+    }
+
+    return (
+      <div className="comparison-content">
+        <div className="subtab-buttons">
+          <button
+            className={`subtab-button ${activeSubTab === 'properties' ? 'active' : ''}`}
+            onClick={() => setActiveSubTab('properties')}
+          >
+            Property Comparison
+          </button>
+          <button
+            className={`subtab-button ${activeSubTab === 'trends' ? 'active' : ''}`}
+            onClick={() => setActiveSubTab('trends')}
+          >
+            Periodic Trends
+          </button>
+        </div>
+        {isDataLoading ? (
+          <div className="loading-container">
+            <DotLottieReact
+              src="https://lottie.host/e10c5f1c-f839-4956-98e3-f7930330be80/csiU7096au.lottie"
+              loop
+              autoplay
+            />
+          </div>
+        ) : (
+          activeSubTab === 'properties' ? renderComparisonCharts() : renderTrendCharts()
+        )}
+      </div>
+    );
+  };
+
+  // Function to render comparison charts
+  const renderComparisonCharts = () => {
+    return (
+      <div className="comparison-charts">
+        {/* Atomic Mass Chart */}
+        <div className="chart-container">
+          <h4>Atomic Mass Comparison</h4>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={prepareChartData('atomic_mass')}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip
+                content={({ payload, label }) => {
+                  if (payload && payload.length) {
+                     const element = payload[0].payload;
+                    return (
+                      <div className={`custom-tooltip ${element.name === hoveredElementSymbol ? 'highlighted-tooltip' : ''}`}>
+                        <p>{`${element.fullName} (${label})`}</p>
+                        <p>{`Atomic Mass: ${payload[0].value}`}</p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Bar dataKey="value" fill="#2196f3" className={hoveredElementSymbol ? 'bar-transition' : ''}>
+                 {prepareChartData('atomic_mass').map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.name === hoveredElementSymbol ? '#fff' : '#2196f3'} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Electronegativity Chart */}
+        <div className="chart-container">
+          <h4>Electronegativity Comparison</h4>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={prepareChartData('electronegativity_pauling')}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip
+                content={({ payload, label }) => {
+                  if (payload && payload.length) {
+                     const element = payload[0].payload;
+                    return (
+                      <div className={`custom-tooltip ${element.name === hoveredElementSymbol ? 'highlighted-tooltip' : ''}`}>
+                        <p>{`${element.fullName} (${label})`}</p>
+                        <p>{`Electronegativity: ${payload[0].value}`}</p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Bar dataKey="value" fill="#ff4081" className={hoveredElementSymbol ? 'bar-transition' : ''}>
+                 {prepareChartData('electronegativity_pauling').map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.name === hoveredElementSymbol ? '#fff' : '#ff4081'} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Discovery Timeline */}
+        <div className="chart-container">
+          <h4>Discovery Timeline</h4>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={prepareDiscoveryData()}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip
+                content={({ payload, label }) => {
+                  if (payload && payload.length) {
+                    const element = payload[0].payload;
+                    return (
+                      <div className={`custom-tooltip ${element.name === hoveredElementSymbol ? 'highlighted-tooltip' : ''}`}>
+                        <p>{`${element.fullName} (${label})`}</p>
+                        <p>{`Discovered: ${payload[0].value}`}</p>
+                        <p>{`By: ${payload[0].payload.discoveredBy}`}</p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke="#4caf50"
+                 dot={(props) => {
+                  const { cx, cy, stroke, key, payload } = props;
+                  const isHovered = payload.name === hoveredElementSymbol;
+                  return (
+                    <circle
+                      key={key}
+                      cx={cx}
+                      cy={cy}
+                      r={isHovered ? 8 : 4}
+                      stroke={stroke}
+                      strokeWidth={isHovered ? 3 : 1}
+                      fill={isHovered ? '#fff' : stroke}
+                      className={isHovered ? 'highlighted-dot' : ''}
+                    />
+                  );
+                }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+       {/* Boiling Point Chart */}
+       <div className="chart-container">
+          <h4>Boiling Point Comparison (K)</h4>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={prepareChartData('boiling_point')}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip
+                content={({ payload, label }) => {
+                  if (payload && payload.length) {
+                     const element = payload[0].payload;
+                    return (
+                      <div className={`custom-tooltip ${element.name === hoveredElementSymbol ? 'highlighted-tooltip' : ''}`}>
+                        <p>{`${element.fullName} (${label})`}</p>
+                        <p>{`Boiling Point: ${payload[0].value} K`}</p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Bar dataKey="value" fill="#00bcd4" className={hoveredElementSymbol ? 'bar-transition' : ''}>
+                 {prepareChartData('boiling_point').map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.name === hoveredElementSymbol ? '#fff' : '#00bcd4'} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Melting Point Chart */}
+        <div className="chart-container">
+          <h4>Melting Point Comparison (K)</h4>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={prepareChartData('melting_point')}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip
+                content={({ payload, label }) => {
+                  if (payload && payload.length) {
+                     const element = payload[0].payload;
+                    return (
+                      <div className={`custom-tooltip ${element.name === hoveredElementSymbol ? 'highlighted-tooltip' : ''}`}>
+                        <p>{`${element.fullName} (${label})`}</p>
+                        <p>{`Melting Point: ${payload[0].value} K`}</p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Bar dataKey="value" fill="#ff9800" className={hoveredElementSymbol ? 'bar-transition' : ''}>
+                 {prepareChartData('melting_point').map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.name === hoveredElementSymbol ? '#fff' : '#ff9800'} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Thermal Conductivity Chart */}
+        <div className="chart-container">
+          <h4>Thermal Conductivity Comparison (W/mK)</h4>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={prepareChartData('conductivity', 'thermal')}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip
+                content={({ payload, label }) => {
+                  if (payload && payload.length) {
+                     const element = payload[0].payload;
+                    return (
+                      <div className={`custom-tooltip ${element.name === hoveredElementSymbol ? 'highlighted-tooltip' : ''}`}>
+                        <p>{`${element.fullName} (${label})`}</p>
+                        <p>{`Thermal Conductivity: ${payload[0].value} W/mK`}</p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Bar dataKey="value" fill="#795548" className={hoveredElementSymbol ? 'bar-transition' : ''}>
+                 {prepareChartData('conductivity', 'thermal').map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.name === hoveredElementSymbol ? '#fff' : '#795548'} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* First Ionization Energy Chart */}
+        <div className="chart-container">
+          <h4>First Ionization Energy (kJ/mol)</h4>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={prepareIonizationData()}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip
+                content={({ payload, label }) => {
+                  if (payload && payload.length) {
+                     const element = payload[0].payload;
+                    return (
+                      <div className={`custom-tooltip ${element.name === hoveredElementSymbol ? 'highlighted-tooltip' : ''}`}>
+                        <p>{`${element.fullName} (${label})`}</p>
+                        <p>{`Ionization Energy: ${payload[0].value} kJ/mol`}</p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Bar dataKey="value" fill="#673ab7" className={hoveredElementSymbol ? 'bar-transition' : ''}>
+                 {prepareIonizationData().map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.name === hoveredElementSymbol ? '#fff' : '#673ab7'} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Refractive Index Chart */}
+        <div className="chart-container">
+          <h4>Refractive Index Comparison</h4>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={prepareChartData('refractive_index')}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip
+                content={({ payload, label }) => {
+                  if (payload && payload.length) {
+                    return (
+                      <div className="custom-tooltip">
+                        <p>{`${payload[0].payload.fullName} (${label})`}</p>
+                        <p>{`Refractive Index: ${payload[0].value}`}</p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Bar dataKey="value" fill="#3f51b5" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Valence Electrons Chart */}
+        <div className="chart-container">
+          <h4>Valence Electrons Comparison</h4>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={prepareChartData('valence_electrons')}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip
+                content={({ payload, label }) => {
+                  if (payload && payload.length) {
+                    return (
+                      <div className="custom-tooltip">
+                        <p>{`${payload[0].payload.fullName} (${label})`}</p>
+                        <p>{`Valence Electrons: ${payload[0].value}`}</p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Bar dataKey="value" fill="#e91e63" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Atomic Radius Chart (Updated) */}
+        <div className="chart-container">
+          <h4>Atomic Radius Comparison (pm)</h4>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={prepareChartData('radius', 'calculated')}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip
+                content={({ payload, label }) => {
+                  if (payload && payload.length) {
+                    return (
+                      <div className="custom-tooltip">
+                        <p>{`${payload[0].payload.fullName} (${label})`}</p>
+                        <p>{`Calculated Atomic Radius: ${payload[0].value} pm`}</p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Bar dataKey="value" fill="#9c27b0" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      {/* Density Chart */}
+      <div className="chart-container">
+          <h4>Density Comparison (g/cm³)</h4>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={prepareChartData('density', 'stp')}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip
+                content={({ payload, label }) => {
+                  if (payload && payload.length) {
+                    return (
+                      <div className="custom-tooltip">
+                        <p>{`${payload[0].payload.fullName} (${label})`}</p>
+                        <p>{`Density: ${payload[0].value} g/cm³`}</p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Bar dataKey="value" fill="#607d8b" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Electron Affinity Chart */}
+        <div className="chart-container">
+          <h4>Electron Affinity (kJ/mol)</h4>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={prepareChartData('electron_affinity')}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip
+                content={({ payload, label }) => {
+                  if (payload && payload.length) {
+                    return (
+                      <div className="custom-tooltip">
+                        <p>{`${payload[0].payload.fullName} (${label})`}</p>
+                        <p>{`Electron Affinity: ${payload[0].value} kJ/mol`}</p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Bar dataKey="value" fill="#009688" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Resistivity Chart */}
+        <div className="chart-container">
+          <h4>Resistivity (μΩ·cm)</h4>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={prepareChartData('resistivity')}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip
+                content={({ payload, label }) => {
+                  if (payload && payload.length) {
+                    return (
+                      <div className="custom-tooltip">
+                        <p>{`${payload[0].payload.fullName} (${label})`}</p>
+                        <p>{`Resistivity: ${payload[0].value} μΩ·cm`}</p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Bar dataKey="value" fill="#8bc34a" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Average Abundance Chart */}
+        <div className="chart-container">
+          <h4>Average Abundance (%)</h4>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={prepareAbundanceData()}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip
+                content={({ payload, label }) => {
+                  if (payload && payload.length) {
+                    const details = payload[0].payload.details;
+                    return (
+                      <div className="custom-tooltip">
+                        <p>{`${payload[0].payload.fullName} (${label})`}</p>
+                        <p>{`Average Abundance: ${payload[0].value.toFixed(6)}%`}</p>
+                        <p>Breakdown:</p>
+                        <p>{`Universe: ${details.universe}%`}</p>
+                        <p>{`Solar: ${details.solar}%`}</p>
+                        <p>{`Meteor: ${details.meteor}%`}</p>
+                        <p>{`Crust: ${details.crust}%`}</p>
+                        <p>{`Ocean: ${details.ocean}%`}</p>
+                        <p>{`Human: ${details.human}%`}</p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Bar dataKey="value" fill="#ffc107" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    );
   };
 
   // Scroll to bottom of messages
@@ -248,19 +1212,23 @@ const ElementChatbot = ({ selectedElements, onClose, activeFilters }) => {
     setIsLoading(true);
     
     try {
-      // Prepare context about the selected elements for combination
-      let elementContext = '';
-      selectedForCombination.forEach(element => {
-        elementContext += `\nElement: ${element.name} (${element.symbol})\n`;
-        elementContext += `Atomic Number: ${element.atomic_number}\n`;
-        elementContext += `Atomic Mass: ${element.atomic_mass}\n`;
-        elementContext += `Category: ${element.series || 'Unknown'}\n`;
-        elementContext += `Phase at Room Temperature: ${element.phase || 'Unknown'}\n`;
-        elementContext += `Electron Configuration: ${element.electron_configuration || 'Unknown'}\n`;
-        elementContext += `Electronegativity: ${element.electronegativity_pauling || 'Unknown'}\n`;
-        elementContext += '---\n';
+      // Prepare input data structure
+      const inputElements = {};
+      selectedForCombination.forEach((element, index) => {
+        inputElements[`element${index + 1}`] = {
+          symbol: element.symbol,
+          name: element.name,
+          atomic_number: element.atomic_number,
+          category: element.series || 'Unknown',
+          electronegativity: element.electronegativity_pauling || 'Unknown'
+        };
       });
-      
+  
+      const requestData = {
+        input: inputElements,
+        count: selectedForCombination.length
+      };
+  
       // Prepare messages for API call
       const elementSymbols = selectedForCombination.map(el => el.symbol).join(' + ');
       const elementNames = selectedForCombination.map(el => el.name).join(' and ');
@@ -268,25 +1236,92 @@ const ElementChatbot = ({ selectedElements, onClose, activeFilters }) => {
       const apiMessages = [
         {
           role: 'system',
-          content: `You are a knowledgeable chemistry teacher explaining how elements interact and combine. The student wants to know about combining these elements:\n${elementContext}\n\nExplain how these elements would interact or combine in various scenarios. Include:
-          1. The most common compounds they form together (if any)
-          2. The chemical reaction(s) that would occur, with balanced equations
-          3. Properties of the resulting compound(s)
-          4. Real-world applications or examples of these combinations
-          5. Any safety considerations or interesting facts`
+          content: `You are a chemistry expert. Given the following elements: ${JSON.stringify(requestData, null, 2)}\n\nProvide a detailed analysis of their combination in this exact JSON format:\n{\n  "input": {elements},\n  "output": {\n    "compound": {\n      "name": "Full compound name",\n      "formula": "Chemical formula",\n      "type": "Type of compound (ionic, covalent, etc.)",\n      "description": "Detailed formation process",\n      "properties": {\n        "category": "Compound category",\n        "applications": ["List of applications"],\n        "structure": "Crystal/molecular structure",\n        "conductivity": "Electrical/thermal properties"\n      }\n    },\n    "summary": "Brief one-line summary"\n  }\n}`
         },
         {
           role: 'user',
-          content: `What happens when I combine ${elementNames}? How would ${elementSymbols} interact?`
+          content: `What compound is formed when combining ${elementNames} (${elementSymbols})? Provide the result in the specified JSON format.`
         }
       ];
       
       // Call Groq API
       const responseContent = await callGroqApi(apiMessages);
-      setCombinationResult(responseContent);
+      
+      // Process the API response
+      try {
+        // Extract JSON from the response
+        // This handles both clean JSON responses and responses where JSON might be embedded in markdown or text
+        const jsonMatch = responseContent.match(/\{[\s\S]*\}/);
+        const jsonString = jsonMatch ? jsonMatch[0] : responseContent;
+        
+        let formattedResult;
+        try {
+          formattedResult = JSON.parse(jsonString);
+        } catch (innerParseError) {
+          // If we can't parse the JSON, check if it's a textual explanation about complex combinations
+          if (responseContent.includes("impossible to determine") || 
+              responseContent.includes("complex mixture") || 
+              responseContent.includes("can't form a stable compound")) {
+            
+            // Handle the complex explanation case
+            return setCombinationResult({
+              title: "Complex Combination",
+              summary: "The combination analysis produced an unexpected format",
+              description: responseContent,
+              elements: selectedForCombination.map(el => `${el.name} (${el.symbol})`).join(", "),
+              status: "complex_combination"
+            });
+          }
+          
+          // Otherwise treat as a general parse error
+          throw innerParseError;
+        }
+        
+        // Extract the relevant display data as simple strings and arrays
+        // Avoid nested objects for direct display
+        const resultData = {
+          title: formattedResult.output?.compound?.name || "Compound Analysis",
+          formula: formattedResult.output?.compound?.formula || "Unknown",
+          summary: formattedResult.output?.summary || "Combination analysis complete",
+          description: formattedResult.output?.compound?.description || "",
+          type: formattedResult.output?.compound?.type || "Unknown",
+          category: formattedResult.output?.compound?.properties?.category || "Unknown",
+          applications: formattedResult.output?.compound?.properties?.applications || [],
+          structure: formattedResult.output?.compound?.properties?.structure || "Unknown",
+          conductivity: formattedResult.output?.compound?.properties?.conductivity || "Unknown",
+          elements: selectedForCombination.map(el => `${el.name} (${el.symbol})`).join(", "),
+          status: "success",
+          rawData: formattedResult // Store the complete data for advanced usage
+        };
+        
+        setCombinationResult(resultData);
+      } catch (parseError) {
+        console.error('Error parsing API response:', parseError);
+        
+        // Fallback handling for non-JSON responses - only using primitive values
+        const fallbackResult = {
+          title: "Analysis Result",
+          summary: "The combination analysis produced an unexpected format",
+          description: responseContent, // Store the raw response as a string
+          elements: selectedForCombination.map(el => `${el.name} (${el.symbol})`).join(", "),
+          status: "parse_error"
+        };
+        
+        setCombinationResult(fallbackResult);
+      }
     } catch (error) {
       console.error('Error in handleCombineElements:', error);
-      setCombinationResult("I'm sorry, there was an error processing your combination request. Please try again later.");
+      
+      // Structured error response with primitive values only
+      const errorResult = {
+        title: "Combination Error",
+        summary: "There was an error processing your combination request",
+        description: error.message || "Unknown error",
+        elements: selectedForCombination.map(el => `${el.name} (${el.symbol})`).join(", "),
+        status: "error"
+      };
+      
+      setCombinationResult(errorResult);
     } finally {
       setIsLoading(false);
     }
@@ -318,7 +1353,7 @@ const ElementChatbot = ({ selectedElements, onClose, activeFilters }) => {
       <div className="chatbot-header">
         <h3>Interactive Chemistry Lab</h3>
         <div className="tab-buttons">
-          <button 
+        <button 
             className={`tab-btn ${activeTab === 'chat' ? 'active' : ''}`}
             onClick={() => setActiveTab('chat')}
           >
@@ -330,8 +1365,14 @@ const ElementChatbot = ({ selectedElements, onClose, activeFilters }) => {
           >
             Element Combinations
           </button>
+          <button 
+            className={`tab-btn ${activeTab === 'compare' ? 'active' : ''}`}
+            onClick={() => setActiveTab('compare')}
+          >
+            Compare Elements
+          </button>
         </div>
-        <button className="close-btn" onClick={onClose}>×</button>
+        <button className="close-btn" onClick={onClose}>x</button>
       </div>
       
       <div className="chatbot-content">
@@ -357,19 +1398,19 @@ const ElementChatbot = ({ selectedElements, onClose, activeFilters }) => {
             ))}
           </div>
           {activeTab === 'combine' && (
-            <div className="combination-controls">
-              <div className="selected-for-combo-count">
-                {selectedForCombination.length} elements selected for combination
-              </div>
-              <button 
-                className="combine-btn"
-                onClick={handleCombineElements}
-                disabled={selectedForCombination.length < 2 || isLoading}
-              >
-                Combine Elements
-              </button>
+          <div className="combination-controls">
+            <div className="selected-for-combo-count">
+              {selectedForCombination.length} elements selected for combination
             </div>
-          )}
+            <button 
+              className="combine-btn"
+              onClick={handleCombineElements}
+              disabled={selectedForCombination.length < 2 || isLoading}
+            >
+              Combine Elements
+            </button>
+          </div>
+        )}
         </div>
         
         {/* Right content area - Tabbed interface */}
@@ -380,20 +1421,20 @@ const ElementChatbot = ({ selectedElements, onClose, activeFilters }) => {
               <div className="chatbot-messages">
                 {messages.map((message, index) => (
                   <div 
-                    key={index} 
-                    className={`message ${message.role === 'user' ? 'user-message' : 'assistant-message'}`}
-                  >
-                    {message.content}
-                    {message.role === 'assistant' && (
-                      <button 
-                        className={`speak-button ${isSpeaking ? 'speaking' : ''}`}
-                        onClick={() => speak(message.content)}
-                        title={isSpeaking ? 'Stop speaking' : 'Read aloud'}
-                      >
-                        <i className={`fas fa-${isSpeaking ? 'stop' : 'volume-up'}`}></i>
-                      </button>
-                    )}
-                  </div>
+                  key={index} 
+                  className={`message ${message.role === 'user' ? 'user-message' : 'assistant-message'}`}
+                >
+                  {message.role === 'user' ? message.content : formatAIResponse(message.content)}
+                  {message.role === 'assistant' && (
+                    <button 
+                      className={`speak-button ${isSpeaking ? 'speaking' : ''}`}
+                      onClick={() => speak(message.content)}
+                      title={isSpeaking ? 'Stop speaking' : 'Read aloud'}
+                    >
+                      <i className={`fas fa-${isSpeaking ? 'stop' : 'volume-up'}`}></i>
+                    </button>
+                  )}
+                </div>
                 ))}
                 {isLoading && (
                   <div className="message assistant-message loading">
@@ -442,7 +1483,7 @@ const ElementChatbot = ({ selectedElements, onClose, activeFilters }) => {
                 </button>
               </div>
             </>
-          ) : (
+          ) : activeTab === 'combine' ? (
             // Combination Tab Content
             <div className="combination-container">
               <div className="combination-instructions">
@@ -475,13 +1516,19 @@ const ElementChatbot = ({ selectedElements, onClose, activeFilters }) => {
                   <p>Analyzing chemical interaction...</p>
                 </div>
               ) : combinationResult && (
-                <div className="combination-result">
+                <div className="combination-result-container">
                   <h4>Combination Analysis:</h4>
                   <div className="result-content">
-                    {combinationResult}
+                    {/* Replace direct rendering with CombinationResultView component */}
+                    <CombinationResultView result={combinationResult} />
                   </div>
                 </div>
               )}
+            </div>
+          ) : (
+            // New comparison tab content
+            <div className="comparison-container">
+              {renderComparisonContent()}
             </div>
           )}
         </div>

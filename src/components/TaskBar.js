@@ -456,61 +456,61 @@ const TaskBar = ({
         {/* Right section - Filters and Chatbot */}
         <div className="taskbar-right">
 
-        {/* Group/Period Display Section */}
-        <div className="taskbar-item">
-          <button
-            className={`taskbar-button ${openSection === 'group-period' ? 'active' : ''}`}
-            onClick={() => toggleSection('group-period')}
-            title="Group/Period Display"
-          >
-            <FaTable />
-            <span className="button-text">Group/Period</span>
-            {openSection === 'group-period' ? <FaChevronDown /> : <FaChevronUp />}
-          </button>
+          {/* Group/Period Display Section */}
+          <div className="taskbar-item">
+            <button
+              className={`taskbar-button ${openSection === 'group-period' ? 'active' : ''}`}
+              onClick={() => toggleSection('group-period')}
+              title="Group/Period Display"
+            >
+              <FaTable />
+              <span className="button-text">Group/Period</span>
+              {openSection === 'group-period' ? <FaChevronDown /> : <FaChevronUp />}
+            </button>
 
-          {openSection === 'group-period' && (
-            <div className="taskbar-dropdown3 group-period-dropdown">
-              <div className="group-period-container">
-                <h4>Display Options</h4>
-                <div className="group-period-options">
-                  <div
-                    className={`option-item ${groupPeriodDisplay === 'disabled' ? 'active' : ''}`}
-                    onClick={() => handleGroupPeriodChange('disabled')}
-                  >
-                    <input
-                      type="radio"
-                      checked={groupPeriodDisplay === 'disabled'}
-                      readOnly
-                    />
-                    <span>Disabled</span>
-                  </div>
-                  <div
-                    className={`option-item ${groupPeriodDisplay === 'internal' ? 'active' : ''}`}
-                    onClick={() => handleGroupPeriodChange('internal')}
-                  >
-                    <input
-                      type="radio"
-                      checked={groupPeriodDisplay === 'internal'}
-                      readOnly
-                    />
-                    <span>Internal (Inside Elements)</span>
-                  </div>
-                  <div
-                    className={`option-item ${groupPeriodDisplay === 'external' ? 'active' : ''}`}
-                    onClick={() => handleGroupPeriodChange('external')}
-                  >
-                    <input
-                      type="radio"
-                      checked={groupPeriodDisplay === 'external'}
-                      readOnly
-                    />
-                    <span>External (Table Layout)</span>
+            {openSection === 'group-period' && (
+              <div className="taskbar-dropdown3 group-period-dropdown">
+                <div className="group-period-container">
+                  <h4>Display Options</h4>
+                  <div className="group-period-options">
+                    <div
+                      className={`option-item ${groupPeriodDisplay === 'disabled' ? 'active' : ''}`}
+                      onClick={() => handleGroupPeriodChange('disabled')}
+                    >
+                      <input
+                        type="radio"
+                        checked={groupPeriodDisplay === 'disabled'}
+                        readOnly
+                      />
+                      <span>Disabled</span>
+                    </div>
+                    <div
+                      className={`option-item ${groupPeriodDisplay === 'internal' ? 'active' : ''}`}
+                      onClick={() => handleGroupPeriodChange('internal')}
+                    >
+                      <input
+                        type="radio"
+                        checked={groupPeriodDisplay === 'internal'}
+                        readOnly
+                      />
+                      <span>Internal (Inside Elements)</span>
+                    </div>
+                    <div
+                      className={`option-item ${groupPeriodDisplay === 'external' ? 'active' : ''}`}
+                      onClick={() => handleGroupPeriodChange('external')}
+                    >
+                      <input
+                        type="radio"
+                        checked={groupPeriodDisplay === 'external'}
+                        readOnly
+                      />
+                      <span>External (Table Layout)</span>
+                    </div>
                   </div>
                 </div>
               </div>
+            )}
             </div>
-          )}
-          </div>
           
           {/* Chatbot Button */}
           <div className="taskbar-item">
@@ -523,6 +523,7 @@ const TaskBar = ({
               <span className="button-text">Chemistry Lab</span>
             </button>
           </div>
+
         </div>
       </div>
       </div>

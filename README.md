@@ -1,70 +1,76 @@
-# Getting Started with Create React App
+# Interactive Periodic Table
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+An interactive periodic table application built with React that provides detailed information about chemical elements, supports element filtering, and includes an AI-powered chemistry chatbot.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+### Interactive Element Display
+- Click on elements to view detailed information
+- Multi-select elements using Ctrl/Cmd + Click
+- Hover over elements for quick information
+- Display internal or external group and period numbers
 
-### `npm start`
+### Smart Filtering System
+- Filter elements by categories (e.g., alkali metals, noble gases)
+- Visual highlighting of filtered elements
+- Multiple filter support
+- Quick filter clearing with a dedicated button
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### AI Chemistry Assistant
+- Interactive chatbot for chemistry learning
+- Support for single and multiple element queries
+- Element combination analysis
+- Text-to-speech capability for responses
+- Suggested questions based on selected elements
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### User Interface
+- Modern, responsive design
+- Customizable display options
+- Smooth transitions and animations
+- Intuitive taskbar interface
 
-### `npm test`
+## Getting Started
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Prerequisites
+- Node.js (v14 or higher)
+- npm or yarn
 
-### `npm run build`
+### Installation
+1. Clone the repository
+2. Install dependencies:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```
+npm install
+npm start
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Usage
+### Basic Navigation
+- Click elements to select them
+- Use the taskbar at the bottom for various controls
+- Access the chatbot through the robot icon
+### Element Selection
+- Single click: Select/deselect one element
+- Ctrl/Cmd + Click: Multi-select elements
+- Right-click: Add to selection
+### Filtering
+1. Click the Legends button in the taskbar
+2. Choose categories to filter
+3. Hover over categories to preview
+4. Click to toggle filters
+### Chatbot Features
+- Ask questions about selected elements
+- Analyze element combinations
+- Use suggested prompts for guidance
+- Toggle text-to-speech for responses
+## Technologies Used
+- React.js
+- CSS3 with Flexbox/Grid
+- Groq API for AI capabilities
+- React Icons
+## Contributing
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## License
+This project is licensed under the MIT License - see the LICENSE file for details.

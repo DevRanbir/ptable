@@ -631,6 +631,28 @@ h1 {
   left: 17%;
 }
 
+.dot-lottie-react {
+  position: absolute;
+  bottom: -39px;
+  width: 340px;
+  height: 240px;
+  transform: scaleX(1);
+  transition: 0.5s ease-in-out;
+  animation: fadeIn 1s ease-in-out alternate;
+}
+
+.dot-lottie-react.external {
+  margin-left: -70px;
+  bottom: 0px;
+  margin-bottom: -20px;
+
+}
+
+.dot-lottie-react.internal {
+  margin-left: -150px;
+
+}
+
 .element.selected {
   transform: scale(1.05);
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);

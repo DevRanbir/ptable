@@ -5,7 +5,7 @@
     left: 40px;
     right: 40px;
     bottom: 70px;
-    background-color: rgba(30, 30, 38, 0.85);
+    background-color: rgba(0, 0, 0, 0.33);
     border-radius: 16px;
     box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
     display: flex;
@@ -14,7 +14,6 @@
     overflow: hidden;
     color: white;
     border: 1px solid rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(12px);
     animation: fade-in 0.4s ease-out;
   }
   
@@ -34,7 +33,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 18px 24px;
-    background: linear-gradient(135deg, #2c2c46, #1a1a28);
+    background: rgba(0, 0, 0, 0.85);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   }
@@ -77,7 +76,7 @@
   }
   
   .close-btn {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0);
     border: none;
     color: white;
     font-size: 22px;
@@ -95,7 +94,7 @@
   .close-btn:hover {
     color: white;
     background-color: rgba(255, 255, 255, 0.25);
-    transform: rotate(90deg);
+    transform: rotateY(180deg) rotateX(180deg);
   }
   
   .chatbot-content {
@@ -107,7 +106,7 @@
   /* Left sidebar styling */
   .elements-sidebar {
     width: 15%;
-    background-color: rgba(26, 26, 36, 0.7);
+    background-color: rgb(0 0 0 / 30%);
     border-right: 1px solid rgba(255, 255, 255, 0.07);
     display: flex;
     flex-direction: column;
@@ -121,7 +120,7 @@
     font-size: 16px;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.9);
-    background-color: rgba(38, 38, 50, 0.5);
+    background-color: rgb(0 0 0 / 50%);
   }
   
   .elements-list {
@@ -131,7 +130,27 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     gap: 10px;
+  
+    /* Scrollbar styling */
+    scrollbar-width: thin; /* For Firefox */
+    scrollbar-color: #2196f3 #000; /* thumb (blue), track (black) */
   }
+  
+  /* For WebKit (Chrome, Edge, Safari) */
+  .elements-list::-webkit-scrollbar {
+    width: 6px; /* Thin scrollbar */
+  }
+  
+  .elements-list::-webkit-scrollbar-track {
+    background: #000; /* Black background */
+  }
+  
+  .elements-list::-webkit-scrollbar-thumb {
+    background-color: #2196f3; /* Blue thumb */
+    border-radius: 10px;
+    border: 1px solid #000; /* Optional: blends thumb with track */
+  }
+  
   
   .element-item {
     display: flex;
@@ -139,21 +158,22 @@
     align-items: center;
     padding: 12px 8px;
     border-radius: 8px;
-    background-color: rgba(50, 50, 70, 0.5);
+    background-color: rgb(0 0 0 / 80%);
     cursor: pointer;
     border: 1px solid rgba(255, 255, 255, 0.05);
     transition: all 0.2s ease;
     text-align: center;
+    justify-content: center;
   }
   
   .element-item:hover {
-    background-color: rgba(65, 65, 95, 0.6);
+    background-color: rgba(0,0,0);
     transform: translateY(-2px);
     box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
   }
   
   .element-item.selected-for-combination {
-    background: linear-gradient(135deg, rgba(74, 144, 226, 0.3), rgba(124, 77, 255, 0.3));
+    background: linear-gradient(135deg, rgb(0 0 0 / 30%), rgb(120 84 253 / 11%));
     border-color: rgba(255, 255, 255, 0.2);
     box-shadow: 0 0 12px rgba(124, 77, 255, 0.2);
   }
@@ -225,11 +245,11 @@
   
   /* Right area styling */
   .chatbot-main {
-    flex: 1;
+    flex: 1 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background-color: rgba(34, 34, 46, 0.7);
+    background-color: rgb(0 0 0 / 85%);
   }
   
   .chatbot-messages {
@@ -671,7 +691,7 @@
 }
 
 .assistant-message {
-  background-color: rgba(50, 50, 65, 0.7);
+  background-color: rgb(0 0 0 / 55%);
   align-self: flex-start;
   border-bottom-left-radius: 4px;
   border-top-left-radius: 12px;
@@ -713,7 +733,7 @@
 
 .suggested-prompts {
   padding: 16px;
-  background-color: rgba(36, 36, 48, 0.8);
+  background-color: rgb(0 0 0 / 85%);
   border-top: 1px solid rgba(255, 255, 255, 0.07);
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
 }
@@ -732,7 +752,7 @@
 }
 
 .prompt-btn {
-  background: rgba(74, 144, 226, 0.2);
+  background: rgb(0 0 0);
   color: white;
   border: 1px solid rgba(100, 181, 246, 0.3);
   padding: 10px 16px;
@@ -753,14 +773,14 @@
 .chatbot-input {
   display: flex;
   padding: 16px 20px;
-  background-color: rgba(30, 30, 42, 0.8);
+  background-color: rgb(0 0 0 / 80%);
   border-top: 1px solid rgba(255, 255, 255, 0.07);
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .chatbot-input input {
   flex: 1;
-  background-color: rgba(48, 48, 64, 0.6);
+  background-color: rgb(0 0 0 / 60%);
   border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 14px 18px;
   border-radius: 24px;
@@ -817,7 +837,7 @@
 }
 
 .combination-instructions {
-  background-color: rgba(60, 60, 85, 0.4);
+  background-color: rgb(0 0 0 / 40%);
   padding: 20px;
   border-radius: 12px;
   margin-bottom: 24px;
@@ -838,7 +858,7 @@
 }
 
 .selected-elements-display {
-  background-color: rgba(50, 50, 70, 0.5);
+  background-color: rgb(0 0 0 / 50%);
   padding: 16px;
   border-radius: 10px;
   margin-bottom: 24px;
@@ -859,11 +879,11 @@
 }
 
 .element-badge {
-  background: linear-gradient(135deg, rgba(74, 144, 226, 0.4), rgba(124, 77, 255, 0.4));
+  background: linear-gradient(135deg, #4a90e2, #7c4dff);
   padding: 10px 16px;
   border-radius: 20px;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: bold;
   display: flex;
   align-items: center;
 }
@@ -902,6 +922,7 @@
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
 }
 
 .combination-result h4 {
@@ -1009,4 +1030,280 @@
   .chatbot-input button {
     padding: 12px 16px;
   }
+}
+
+/* Add to existing CSS */
+.comparison-container {
+  padding: 20px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.comparison-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.compare-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  background: #2c3e50;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.compare-btn.active {
+  background: #3498db;
+}
+
+.compare-btn:hover {
+  background: #34495e;
+}
+
+.chart-container {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.chart-container h4 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #ecf0f1;
+}
+
+/* Add these styles to ElementChatbot.css */
+
+.comparison-container {
+  padding: 20px;
+  overflow-y: auto;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.comparison-charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 24px;
+  padding: 16px;
+}
+
+.chart-container {
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.chart-container h4 {
+  margin: 0 0 16px 0;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.custom-tooltip {
+  background: rgba(0, 0, 0, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 12px;
+  color: white;
+  font-size: 14px;
+}
+
+
+.custom-tooltip p {
+  margin: 4px 0;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.custom-tooltip p:first-child {
+  font-weight: bold;
+  color: #2196f3;
+}
+
+.comparison-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  padding: 20px;
+}
+
+.subtab-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  justify-content: flex-start
+}
+
+.subtab-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  background-color: #1c1c1c;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: white;
+}
+
+.subtab-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+
+.subtab-button.active {
+  background: linear-gradient(135deg, #4a90e2, #7c4dff);
+  color: white;
+}
+
+
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+}
+
+.loading-container > div {
+  width: 200px;
+  height: 200px;
+}
+
+
+.custom-tooltip.highlighted-tooltip {
+  border: 2px solid #fff; /* White border for highlighted tooltip */
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5); /* Glow effect */
+}
+
+.highlighted-dot {
+  animation: pulse-dot 1.5s infinite ease-in-out; /* Add pulse animation */
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.7;
+  }
+}
+
+.bar-transition {
+  transition: fill 0.3s ease; /* Smooth transition for bar color change */
+}
+
+.message.ai {
+  /* Existing styles */
+}
+
+.message.ai ul,
+.message.ai ol {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.message.ai li {
+  margin: 4px 0;
+}
+
+.message.ai code {
+  background-color: #f5f5f5;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.message.ai pre {
+  background-color: #f5f5f5;
+  padding: 12px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 8px 0;
+}
+
+.message.ai pre code {
+  background-color: transparent;
+  padding: 0;
+}
+
+.message.ai a {
+  color: #2196f3;
+  text-decoration: none;
+}
+
+.message.ai a:hover {
+  text-decoration: underline;
+}
+
+.message.ai strong {
+  font-weight: 600;
+}
+
+.message.ai em {
+  font-style: italic;
+}
+
+
+.combination-result.structured {
+  padding: 20px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  margin: 15px 0;
+}
+
+.combination-result h3 {
+  color: #2196f3;
+  margin-bottom: 10px;
+}
+
+.combination-result .compound-type {
+  color: #666;
+  font-style: italic;
+  margin-bottom: 15px;
+}
+
+.combination-result .description {
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.combination-result .properties {
+  background: white;
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+}
+
+.combination-result .applications ul {
+  list-style-type: disc;
+  margin-left: 20px;
+}
+
+.combination-result .summary {
+  font-weight: 500;
+  color: #333;
+  padding: 10px;
+  background: #e3f2fd;
+  border-radius: 4px;
+}
+
+.combination-result.error {
+  color: #f44336;
+  padding: 10px;
+  background: #ffebee;
+  border-radius: 4px;
 }
