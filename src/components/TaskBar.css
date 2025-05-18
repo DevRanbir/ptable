@@ -100,7 +100,7 @@
   border-radius: 4px;
   box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.3);
   padding: 15px;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
   z-index: 1001;
   max-height: 70vh;
 }
@@ -108,15 +108,28 @@
 .taskbar-dropdown2 {
     position: absolute;
     bottom: 100%;
-    left: -130%;
+    left: -150px;
+    background-color: rgba(0, 0, 0, 0.9);
+    border-radius: 4px;
+    box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    margin-bottom: 15px;
+    z-index: 1001;
+    max-height: 70vh;
+    min-width: 300px;
+  }
+
+  .taskbar-dropdown3 {
+    position: absolute;
+    bottom: 100%;
+    transform: translateX(-50%);
     background-color: #000000dd;
     border-radius: 4px;
     box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.3);
     padding: 15px;
-    margin-bottom: 12px;
+    margin-bottom: 15px;
     z-index: 1001;
     max-height: 70vh;
-    min-width: 300px;
   }
 
 /* Arrow at the bottom of dropdown */
@@ -124,7 +137,30 @@
   content: '';
   position: absolute;
   bottom: -10px;
-  left: 50%;
+  left: 67.5%;
+  transform: translateX(-50%);
+  border-width: 10px 10px 0;
+  border-style: solid;
+  border-color: #2a2a2a transparent transparent;
+}
+
+/* Arrow at the bottom of dropdown */
+.taskbar-dropdown2::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 20%;
+  transform: translateX(-50%);
+  border-width: 10px 10px 0;
+  border-style: solid;
+  border-color: #2a2a2a transparent transparent;
+}
+/* Arrow at the bottom of dropdown */
+.taskbar-dropdown3::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 59%;
   transform: translateX(-50%);
   border-width: 10px 10px 0;
   border-style: solid;
@@ -136,41 +172,79 @@
   width: 80vw;
 }
 
-.legends-dropdown {
-  width: 190px;
-}
+
 
 .legends-container {
-  padding: 10px;
+    padding: 0px 10px 10px 10px;
 }
 
-.legend-items {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-top: 10px;
+.legends-container h4 {
+    margin-block-start: 0.5em;
+    margin-block-end: 1em;
 }
 
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
 
 .legend-item:hover {
   background-color: rgba(255, 255, 255, 0.1);
   transform: translateY(-2px);
 }
 
+.legend-item.active {
+  background-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Remove the separate legend-checkbox div */
+/* .legend-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+} */
+
 .legend-color {
+  width: 20px; /* Slightly increased size to fit checkbox */
+  height: 20px; /* Slightly increased size to fit checkbox */
+  border-radius: 3px;
+  display: flex; /* Use flexbox to center checkbox */
+  justify-content: center; /* Center checkbox horizontally */
+  align-items: center; /* Center checkbox vertically */
+  position: relative; /* Needed for absolute positioning of checkbox */
+  transition: all 0.2s;
+}
+
+.legend-color input[type="checkbox"] {
+  margin: 0;
   width: 16px;
   height: 16px;
-  border-radius: 3px;
-  display: inline-block;
+  cursor: pointer;
+  opacity: 0.8;
+  mix-blend-mode: difference; /* This makes the checkbox visible on any background color */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border-radius: 2px;
+  background: transparent;
+}
+
+
+.legend-color input[type="checkbox"]:checked::after {
+  content: '✔️';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgb(255, 255, 255);
+  font-size: 12px;
+}
+
+
+.legend-item.active .legend-color {
+  box-shadow: 0 0 8px var(--highlight-color);
 }
 
 .legend-color.alkali { background-color: #ff6666; }
@@ -271,6 +345,7 @@
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
+  height: 30px;
 }
 
 .active-filter-tag {
@@ -389,5 +464,85 @@
   
   .filter-categories {
     grid-template-columns: 1fr;
+  }
+}
+
+
+/* Group/Period Display Styles */
+.group-period-container {
+  color: white;
+  min-width: 190px;
+  padding: 5px;
+}
+
+.group-period-container h4 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #ffffff;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+}
+
+.group-period-options {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.option-item {
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  border-left: 3px solid transparent;
+}
+
+.option-item:hover {
+  background-color: #444;
+}
+
+.option-item.active {
+  background-color:  #007bff;
+}
+
+.option-item.active::before {
+  content: '';
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.option-item span {
+  font-size: 12px;
+  font-weight: 500;
+  color: #fff;
+}
+
+.option-item.active span {
+  color: #ffffff;
+}
+
+/* Remove radio buttons */
+.option-item input[type="radio"] {
+  display: none;
+}
+
+/* Add smooth transitions */
+.group-period-dropdown {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: dropdownFadeIn 0.1s ease forwards;
+  background-color: rgba(1, 1, 1, 0.9);
+}
+
+@keyframes dropdownFadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './PeriodicTable.css';
 import elementData from '../pTable.json';
 import ElementDetails from './ElementDetails';
@@ -14,11 +14,18 @@ const PeriodicTable = () => {
   const [activeFilters, setActiveFilters] = useState([]);
   // State for showing group and period numbers
   const [showGroupPeriod, setShowGroupPeriod] = useState(false);
-  // State for dropdown menus
-  const [openDropdown, setOpenDropdown] = useState(null);
-  // State for chatbot
   const [showChatbot, setShowChatbot] = useState(false);
   const [selectedElements, setSelectedElements] = useState([]);
+  const periodNumbers = Array.from({ length: 7 }, (_, i) => i + 1);
+
+  const handleClearAll = () => {
+    setSelectedElements([]);
+    setActiveFilters([]);
+  };
+
+  const getNameImageClass = () => {
+    return showGroupPeriod === 'external' ? 'name-image external' : 'name-image internal';
+  };
 
   // Function to handle element selection
   const handleElementClick = (element, event) => {
@@ -48,16 +55,7 @@ const PeriodicTable = () => {
   // Get highlighted elements based on active filters
   const getHighlightedElements = () => {
     if (activeFilters.length === 0) return [];
-    
-    // Get all elements that match the current filters
-    const filteredElements = elementData.filter(element => matchesFilter(element));
-    
-    // Limit to a reasonable number to avoid overwhelming the API
-    if (filteredElements.length > 10) {
-      return filteredElements.slice(0, 10);
-    }
-    
-    return filteredElements;
+    return elementData.filter(element => matchesFilter(element));
   };
 
   // Create a mapping of elements by atomic number for easy access
@@ -239,15 +237,26 @@ const PeriodicTable = () => {
     
     // Calculate group and period numbers
     // For main table (rows 0-6), the period is rowIndex + 1
-    // For lanthanides and actinides (rows 8-9), special handling
     let period = rowIndex + 1;
-    let group = colIndex + 1;
+    let group;
     
     // Special handling for lanthanides and actinides
     if (rowIndex >= 8) {
       period = rowIndex === 8 ? 6 : 7; // Lanthanides are period 6, actinides are period 7
       // These elements don't have traditional group numbers
       group = 0;
+    } else {
+      // For main table columns
+      if (colIndex <= 1) {
+        // First two columns (groups 1-2)
+        group = colIndex + 1;
+      } else if (colIndex === 3) {
+        group = 3;
+      } else if (colIndex >= 3) {
+        // For columns 3 and beyond, determine the group number sequentially
+        // Columns to the right of column 3 get groups 4,5,6,7...18
+        group = colIndex ;
+      }
     }
 
     // Determine the class names
@@ -261,7 +270,7 @@ const PeriodicTable = () => {
     if (selectedElements.length > 0) {
       elementClasses += isSelected ? ' selected' : ' faded';
     }
-    
+
     return (
       <div
         className={elementClasses}
@@ -273,9 +282,9 @@ const PeriodicTable = () => {
         onMouseMove={handleMouseMove}
       >
         <div className="atomic-number">{element.atomic_number}</div>
-        {showGroupPeriod && (
+        {showGroupPeriod === 'internal' && (
           <div className="group-period-indicators">
-            {group && <div className="group-indicator">G{group}</div>}
+            {group !== undefined && <div className="group-indicator">G{group}</div>}
             <div className="period-indicator">P{period}</div>
           </div>
         )}
@@ -311,63 +320,101 @@ const PeriodicTable = () => {
       }
     });
   };
-  
-  // Toggle group and period numbers display
-  const toggleGroupPeriod = () => {
-    setShowGroupPeriod(prev => !prev);
-  };
-  
-  // Handle dropdown toggle
-  const toggleDropdown = (dropdown) => {
-    setOpenDropdown(openDropdown === dropdown ? null : dropdown);
-  };
-
   // Function to handle opening the chatbot with selected elements
   const handleOpenChatbot = () => {
-    if (selectedElements.length > 0) {
-      setShowChatbot(true);
+    // If there are active filters, set the filtered elements as selected
+    if (activeFilters.length > 0) {
+      setSelectedElements(getHighlightedElements());
     }
+    setShowChatbot(true);
+  };
+  
+  // Toggle group and period numbers display
+  // Modify the toggleGroupPeriod function to accept a display mode
+  const toggleGroupPeriod = (mode) => {
+    setShowGroupPeriod(mode);
   };
 
   return (
     <div className="periodic-table-container">
-     
       <div className="periodic-table-wrapper">
-        
-        
-        <div className="periodic-table-with-periods">
+        <div className="table-with-period-numbers">
+          {/* Period numbers on the left - only show if external mode */}
+          {showGroupPeriod === 'external' && (
+            <div className="period-numbers">
+              <div className="period-label">P▼</div>
+              {periodNumbers.map(num => (
+                <div key={`period-${num}`} className="period-number">{num}</div>
+              ))}
+              <div className="period-empty"></div>
+              <div className="period-empty"></div>
+              <div className="period-number">6</div>
+              <div className="period-number">7</div>
+            </div>
+          )}
           
+          <div className="periodic-table-with-periods">
+            {/* Name Image */}
+            <img className={getNameImageClass()} src={image} alt="Periodic Table Title"/>
 
-          {/* Name Image */}
-          <img src={image} alt="Periodic Table Title" className="name-image" />
-
-
-          {/* The periodic table */}
-          <div className="periodic-table">
-            {periodicTableLayout.map((row, rowIndex) => (
-              <div className="row" key={rowIndex}>
-                {row.map((atomicNumber, colIndex) => (
-                  <div className="cell" key={`${rowIndex}-${colIndex}`}>
-                    {renderElement(atomicNumber, rowIndex, colIndex)}
-                  </div>
-                ))}
-              </div>
-            ))}
+            {/* The periodic table */}
+            <div className="periodic-table">
+              {periodicTableLayout.map((row, rowIndex) => (
+                <div className="row" key={rowIndex}>
+                  {row.map((atomicNumber, colIndex) => (
+                    <div className="cell" key={`${rowIndex}-${colIndex}`}>
+                      {renderElement(atomicNumber, rowIndex, colIndex)}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
+        {/* Group numbers at the bottom - only show if external mode */}
+        {showGroupPeriod === 'external' && (
+          <div className="group-numbers bottom">
+            <div className="group-label">G►</div>
+            <div className="group-number">1</div>
+            <div className="group-number">2</div>
+            <div className="group-empty"></div>
+            <div className="group-number">3</div>
+            <div className="group-empty2"></div>
+            <div className="group-number">4</div>
+            <div className="group-empty2"></div>
+            <div className="group-number">5</div>
+            <div className="group-empty2"></div>
+            <div className="group-number">6</div>
+            <div className="group-empty2"></div>
+            <div className="group-number">7</div>
+            <div className="group-empty2"></div>
+            <div className="group-number">8</div>
+            <div className="group-empty2"></div>
+            <div className="group-number">9</div>
+            <div className="group-number">10</div>
+            <div className="group-number">11</div>
+            <div className="group-number">12</div>
+            <div className="group-number">13</div>
+            <div className="group-number">14</div>
+            <div className="group-number">15</div>
+            <div className="group-number">16</div>
+            <div className="group-number">17</div>
+            <div className="group-number">18</div>
+          </div>
+        )}
       </div>
       <ElementDetails 
         element={hoveredElement} 
         visible={hoveredElement !== null} 
         position={tooltipPosition} 
       />
-      
       {showChatbot && selectedElements.length > 0 && (
         <ElementChatbot 
           selectedElements={selectedElements}
           onClose={handleCloseChatbot}
           showCombine={selectedElements.length > 1}
+          activeFilters={activeFilters} // Pass active filters to the chatbot
         />
       )}
       <TaskBar 
@@ -376,10 +423,20 @@ const PeriodicTable = () => {
         setActiveFilters={setActiveFilters}
         showGroupPeriod={showGroupPeriod}
         toggleGroupPeriod={toggleGroupPeriod}
-        openChatbot={handleOpenChatbot}
         getHighlightedElements={getHighlightedElements}
         selectedElements={selectedElements}
+        setSelectedElements={setSelectedElements}
+        elementData={elementData}
+        openChatbot={handleOpenChatbot}
       />
+
+      {(selectedElements.length > 0 || activeFilters.length > 0) && (
+        <button className="clear-all-button" onClick={handleClearAll}>
+          <span>Clear All Selections</span>
+        </button>
+      )}
+
+    
     </div>
   );
 };

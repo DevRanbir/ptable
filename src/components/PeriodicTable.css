@@ -19,31 +19,57 @@ h1 {
 .periodic-table-wrapper {
   display: flex;
   flex-direction: column;
-  margin-bottom: 20px;
+  align-items: center;
+  position: relative;
+}
+
+.table-with-period-numbers {
+  display: flex;
+  gap: 10px;
 }
 
 .group-numbers {
   display: flex;
-  margin-left: 25px; /* Space for period numbers */
-  margin-bottom: 5px;
-  gap: 2px;
-}
-
-.group-label {
-  width: 60px;
-  display: flex;
+  gap: 45px;
   align-items: center;
-  justify-content: center;
   font-weight: bold;
-  color: #ffcc00;
-  font-size: 14px;
+  color: #666;
+
+}
+.group-empty {
+  padding-left: 20px;
+}
+.group-empty2 {
+  margin: -18px
+}
+.group-numbers.bottom {
+  margin-top: 10px;
+  margin-bottom: 0;
+  position: absolute;
+  bottom: 165px;
+  left: 0px;
 }
 
-.group-number {
-  width: 60px;
-  text-align: center;
+.group-label,
+.period-label {
   font-weight: bold;
-  color: #ffcc00;
+  color: #666;
+}
+
+.period-number {
+  width: 30px;
+  text-align: center;
+  color: #666;
+}
+
+.period-numbers {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.period-empty {
+  height: 30px;
 }
 
 .periodic-table-with-periods {
@@ -58,22 +84,21 @@ h1 {
 }
 
 .period-label {
-  height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  color: #ffcc00;
+  color: #666;
   font-size: 14px;
 }
 
 .period-number {
-  height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  color: #ffcc00;
+  color: #666;
+  padding-bottom: 42px;
 }
 
 .periodic-table {
@@ -115,19 +140,6 @@ h1 {
   z-index: 10;
 }
 
-/* Right-click indicator */
-.element::after {
-  content: "";
-  position: absolute;
-  bottom: 2px;
-  left: 2px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.5);
-  opacity: 0;
-  transition: opacity 0.2s;
-}
 
 .element:hover::after {
   opacity: 1;
@@ -601,12 +613,22 @@ h1 {
 .name-image {
   max-width: 500px;
   height: auto;
-  margin-top: 55px;
+  margin-top: 50px;
   z-index: 1;
   position: absolute;
-  left: 18%;
   filter: invert(1);
   pointer-events: none;
+  animation: fadeIn 1s ease-in-out alternate;
+}
+
+
+
+.name-image.external {
+  left: 19.5%;
+}
+
+.name-image.internal {
+  left: 17%;
 }
 
 .element.selected {
@@ -624,3 +646,29 @@ h1 {
 .element {
   transition: transform 0.2s, box-shadow 0.2s;
 }
+
+.clear-all-button {
+  position: fixed;
+  bottom: 70px;
+  right: 20px;
+  background-color: #dc3545;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  z-index: 99;
+}
+
+.clear-all-button:hover {
+  background-color: #c82333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+

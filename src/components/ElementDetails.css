@@ -1,43 +1,115 @@
 .element-details {
   position: fixed;
-  background-color: rgba(18, 18, 18, 0.95);
-  border: 1px solid #444;
-  border-radius: 5px;
-  padding: 15px;
-  width: 300px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.9);
+  border-radius: 6px;
+  padding: 12px;
+  width: auto;
+  max-width: 450px;
   z-index: 100;
   pointer-events: none;
-  transform: translate(-50%, -100%);
-  margin-top: -30px;
   color: white;
+  transition: transform 0.2s ease;
 }
 
-.element-details h2 {
-  margin-top: 0;
+.element-content {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.details-section {
+  flex: 1;
+  min-width: 180px;
+}
+
+.image-section {
+  width: auto;
+  max-width: 150px;
+  height: auto;
+  max-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.element-header {
+  display: flex;
+  align-items: center;
   margin-bottom: 10px;
-  font-size: 18px;
-  border-bottom: 1px solid #444;
-  padding-bottom: 5px;
+  gap: 8px;
+}
+
+.element-symbol {
+  font-size: 20px;
+  font-weight: bold;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.element-name-number {
+  display: flex;
+  flex-direction: column;
+}
+
+.element-name-number h2 {
+  margin: 0;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+}
+
+.atomic-number {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.element-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 4px;
 }
 
 .details-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 8px;
+  gap: 4px;
+  font-size: 12px;
 }
 
 .detail-item {
   display: flex;
   justify-content: space-between;
-  font-size: 14px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 .detail-label {
-  font-weight: bold;
-  color: #aaa;
+  font-weight: 500;
+  color: #bbb;
 }
 
 .detail-value {
   text-align: right;
+  max-width: 60%;
+  word-break: break-word;
+}
+
+.electron-config {
+  font-family: monospace;
+  font-size: 11px;
+}
+
+.discovery {
+  color: #d6c7a9;
 }

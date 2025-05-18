@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './ElementChatbot.css';
 
-const ElementChatbot = ({ selectedElements, onClose }) => {
+const ElementChatbot = ({ selectedElements, onClose, activeFilters }) => {
   // State for managing tabs and chat functionality
   const [activeTab, setActiveTab] = useState('chat'); // 'chat' or 'combine'
   const [messages, setMessages] = useState([]);
@@ -56,31 +56,44 @@ const ElementChatbot = ({ selectedElements, onClose }) => {
   useEffect(() => {
     // Generate initial message and suggested prompts when selected elements change
     if (selectedElements && selectedElements.length > 0) {
-      const initialMessage = generateInitialMessage(selectedElements);
+      // Pass activeFilters to the message and prompt generation functions
+      const initialMessage = generateInitialMessage(selectedElements, activeFilters);
       setMessages([{ role: 'assistant', content: initialMessage }]);
-      generateSuggestedPrompts(selectedElements);
+      generateSuggestedPrompts(selectedElements, activeFilters);
       // Reset user message state when elements change
       setHasUserSentMessage(false);
       // Clear combination selections when elements change
       setSelectedForCombination([]);
       setCombinationResult(null);
     }
-  }, [selectedElements]);
+  }, [selectedElements, activeFilters]); // Add activeFilters to dependency array
 
-  // Generate initial message based on selected elements
-  const generateInitialMessage = (elements) => {
-    if (elements.length === 1) {
-      return `Hello! I'm your chemistry teacher assistant. You've selected ${elements[0].name} (${elements[0].symbol}). What would you like to know about it?`;
-    } else {
-      const elementNames = elements.map(el => `${el.name} (${el.symbol})`).join(', ');
-      return `Hello! I'm your chemistry teacher assistant. You've selected multiple elements: ${elementNames}. What would you like to know about these elements?`;
+  // Generate initial message based on selected elements and active filters
+  const generateInitialMessage = (elements, filters) => {
+    let message = `Hello! I'm your chemistry teacher assistant. `;
+  
+    if (filters && filters.length > 0) {
+      message += `You're currently looking at elements filtered by: ${filters.join(', ')}. `;
     }
+  
+    if (elements.length === 1) {
+      message += `You've selected ${elements[0].name} (${elements[0].symbol}). What would you like to know about it?`;
+    } else if (elements.length === 118) {
+      message += `You've selected all Modern Periodic Elements. What would you like to know about the periodic table?`;
+    } else {
+      const elementCount = elements.length;
+      const elementNames = elements.length <= 8 
+        ? elements.map(el => `${el.name} (${el.symbol})`).join(', ')
+        : `${elementCount} elements`;
+      message += `You've selected ${elementNames}. What would you like to know about these elements?`;
+    }
+    return message;
   };
 
-  // Generate suggested prompts based on selected elements
-  const generateSuggestedPrompts = (elements) => {
+  // Generate suggested prompts based on selected elements and active filters
+  const generateSuggestedPrompts = (elements, filters) => {
     const prompts = [];
-    
+
     if (elements.length === 1) {
       const element = elements[0];
       prompts.push(
@@ -89,15 +102,16 @@ const ElementChatbot = ({ selectedElements, onClose }) => {
         `Explain the electron configuration of ${element.name}`,
         `What makes ${element.name} unique?`
       );
-      
+
       // Add specific prompts based on element properties
       if (element.series) {
         prompts.push(`Why is ${element.name} classified as a ${element.series}?`);
       }
-      
+
       if (element.discovered) {
         prompts.push(`Tell me about the discovery of ${element.name}`);
       }
+
     } else {
       // Multiple elements selected
       prompts.push(
@@ -106,21 +120,32 @@ const ElementChatbot = ({ selectedElements, onClose }) => {
         'Explain the trends across these elements',
         'How do these elements interact with each other?'
       );
-      
+
       // Check if elements are in the same group/period/block
       const categories = elements.map(el => el.series);
       const uniqueCategories = [...new Set(categories)];
-      
+
       if (uniqueCategories.length === 1) {
         prompts.push(`Why are all these elements classified as ${uniqueCategories[0]}?`);
       } else if (uniqueCategories.length < elements.length) {
         prompts.push('Explain the different categories these elements belong to');
       }
-      
+
       // Check for anomalies
       prompts.push('Are there any anomalies or exceptions among these elements?');
     }
-    
+
+    // Add prompts related to active filters if any
+    if (filters && filters.length > 0) {
+        prompts.push(`How do these elements relate to the "${filters.join(', ')}" filter?`);
+        if (elements.length > 1) {
+             prompts.push(`Compare these elements based on the "${filters.join(', ')}" filter criteria.`);
+        } else {
+             prompts.push(`Explain how ${elements[0].name} fits the "${filters.join(', ')}" filter criteria.`);
+        }
+    }
+
+
     setSuggestedPrompts(prompts);
   };
 
@@ -139,28 +164,35 @@ const ElementChatbot = ({ selectedElements, onClose }) => {
     try {
       // Prepare context about the selected elements
       let elementContext = '';
-      selectedElements.forEach(element => {
+      if (selectedElements.length <= 8) {
+        selectedElements.forEach(element => {
         elementContext += `\nElement: ${element.name} (${element.symbol})\n`;
         elementContext += `Atomic Number: ${element.atomic_number}\n`;
         elementContext += `Atomic Mass: ${element.atomic_mass}\n`;
-        elementContext += `Category: ${element.series || 'Unknown'}\n`;
-        elementContext += `Phase at Room Temperature: ${element.phase || 'Unknown'}\n`;
-        elementContext += `Electron Configuration: ${element.electron_configuration || 'Unknown'}\n`;
-        elementContext += `Electronegativity: ${element.electronegativity_pauling || 'Unknown'}\n`;
         elementContext += `Discovered: ${element.discovered ? `${element.discovered.year} by ${element.discovered.by}` : 'Unknown'}\n`;
         elementContext += `Melting Point: ${element.melting_point || 'Unknown'} K\n`;
         elementContext += `Boiling Point: ${element.boiling_point || 'Unknown'} K\n`;
-        if (element.abundance) {
-          elementContext += `Abundance in Earth's crust: ${element.abundance.crust || 'Unknown'}%\n`;
-        }
         elementContext += '---\n';
       });
+    } else {
+      elementContext = `Selected elements (${selectedElements.length}): `;
+      elementContext += selectedElements.map(el => el.symbol).join(', ');
+      if (selectedElements.length === 118) {
+        elementContext += '\n(All elements from the Modern Periodic Table)';
+      }
+    }
       
+      // Add active filters to the context if any are applied
+      let filterContext = '';
+      if (activeFilters && activeFilters.length > 0) {
+        filterContext = `\nNote: The user is currently viewing elements filtered by the following criteria: ${activeFilters.join(', ')}. Keep this in mind when discussing the selected elements.\n\n`;
+      }
+
       // Prepare messages for API call
       const apiMessages = [
         {
           role: 'system',
-          content: `You are a knowledgeable and enthusiastic chemistry teacher explaining elements to a student. \n\nHere is information about the element(s) the student has selected:\n${elementContext}\n\nRespond in a friendly, educational manner. Explain concepts clearly as if teaching a student. Include interesting facts and real-world applications when relevant. If there are any anomalies or special properties worth noting, mention them. Keep your responses concise (under 250 words) but informative.`
+          content: `You are a knowledgeable and enthusiastic chemistry teacher explaining elements to a student. ${filterContext}\nHere is information about the element(s) the student has selected:\n${elementContext}\n\nRespond in a friendly, educational manner. Explain concepts clearly as if teaching a student. Include interesting facts and real-world applications when relevant. If there are any anomalies or special properties worth noting, mention them. Keep your responses concise (under 250 words) but informative.`
         },
         ...messages.filter(msg => msg.role !== 'system'),
         userMessage
