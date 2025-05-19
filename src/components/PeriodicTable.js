@@ -6,6 +6,7 @@ import ElementChatbot from './ElementChatbot';
 import TaskBar from './TaskBar';
 import image from './Name.png';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import QuickInfo from './QuickInfo';
 
 const PeriodicTable = () => {
   // State for hover details
@@ -17,6 +18,7 @@ const PeriodicTable = () => {
   const [showGroupPeriod, setShowGroupPeriod] = useState(false);
   const [showChatbot, setShowChatbot] = useState(false);
   const [selectedElements, setSelectedElements] = useState([]);
+  const [showQuickInfo, setShowQuickInfo] = useState(false);
   const periodNumbers = Array.from({ length: 7 }, (_, i) => i + 1);
 
   const handleClearAll = () => {
@@ -29,7 +31,7 @@ const PeriodicTable = () => {
   };
 
   const getNameImageClass2 = () => {
-    return showGroupPeriod === 'external' ? 'dot-lottie-react external' : 'dot-lottie-react internal';
+    return showGroupPeriod === 'external' ? 'dot-lottie-react2 external' : 'dot-lottie-react2 internal';
   };
 
   // Function to handle element selection
@@ -57,11 +59,6 @@ const PeriodicTable = () => {
     });
   };
   
-  // Get highlighted elements based on active filters
-  const getHighlightedElements = () => {
-    if (activeFilters.length === 0) return [];
-    return elementData.filter(element => matchesFilter(element));
-  };
 
   // Create a mapping of elements by atomic number for easy access
   const elementMap = {};
@@ -325,21 +322,7 @@ const PeriodicTable = () => {
       }
     });
   };
-  // Function to handle opening the chatbot with selected elements
-  const handleOpenChatbot = () => {
-    // If there are active filters, set the filtered elements as selected
-    if (activeFilters.length > 0) {
-      setSelectedElements(getHighlightedElements());
-    }
-    setShowChatbot(true);
-  };
   
-  // Toggle group and period numbers display
-  // Modify the toggleGroupPeriod function to accept a display mode
-  const toggleGroupPeriod = (mode) => {
-    setShowGroupPeriod(mode);
-  };
-
   return (
     <div className="periodic-table-container">
       <div className="periodic-table-wrapper">
@@ -426,13 +409,13 @@ const PeriodicTable = () => {
         activeFilters={activeFilters}
         handleFilterClick={handleFilterClick}
         setActiveFilters={setActiveFilters}
-        showGroupPeriod={showGroupPeriod}
-        toggleGroupPeriod={toggleGroupPeriod}
-        getHighlightedElements={getHighlightedElements}
+        toggleGroupPeriod={setShowGroupPeriod}
+        openChatbot={() => setShowChatbot(true)}
         selectedElements={selectedElements}
         setSelectedElements={setSelectedElements}
         elementData={elementData}
-        openChatbot={handleOpenChatbot}
+        showQuickInfo={showQuickInfo}
+        setShowQuickInfo={setShowQuickInfo}
       />
       <DotLottieReact
                 src="https://lottie.host/e6c0bd4e-c611-432f-ab2a-9bedea410baa/NjaNHCwt2O.lottie"
@@ -440,6 +423,12 @@ const PeriodicTable = () => {
                 autoplay
                 className={getNameImageClass2()}
       />
+      <DotLottieReact
+      src="https://lottie.host/7c620340-10ed-4043-9bfe-b74e36a3a7c9/J3ehjkEJwD.lottie"
+      loop
+      autoplay
+      className='imp'
+    />
 
       {(selectedElements.length > 0 || activeFilters.length > 0) && (
         <button className="clear-all-button" onClick={handleClearAll}>
@@ -447,7 +436,7 @@ const PeriodicTable = () => {
         </button>
       )}
 
-      
+      {showQuickInfo && <QuickInfo onClose={() => setShowQuickInfo(false)} />}
 
     
     </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './TaskBar.css';
 import { FaChevronDown, FaChevronUp, FaFilter, FaRobot, FaTable, FaPalette } from 'react-icons/fa';
+import { FaInfoCircle } from 'react-icons/fa';
 
 const TaskBar = ({
   activeFilters,
@@ -10,12 +11,19 @@ const TaskBar = ({
   openChatbot,
   selectedElements,
   setSelectedElements,
-  elementData 
+  elementData,
+  showQuickInfo,
+  setShowQuickInfo
 }) => {
   const [openSection, setOpenSection] = useState(null);
   const taskbarRef = useRef(null); // Create a ref for the taskbar element
-  const [toggledLegends, setToggledLegends] = useState([]);
+  const [toggledLegends ] = useState([]);
   const [groupPeriodDisplay, setGroupPeriodDisplay] = useState('disabled');
+
+
+  const handleQuickInfoClick = () => {
+    setShowQuickInfo(true);
+  };
 
   const handleGroupPeriodChange = (option) => {
     setGroupPeriodDisplay(option);
@@ -23,11 +31,82 @@ const TaskBar = ({
   };
 
   const handleChatbotClick = () => {
-    // If no elements are selected and no filters are active, select all elements
-    if (selectedElements.length === 0 && activeFilters.length === 0) {
-      // Get all elements from elementData (passed as a prop)
-      const allElements = elementData;
-      setSelectedElements(allElements);
+    if (activeFilters.length > 0) {
+      // Get all elements that match the current filters
+      const filteredElements = elementData.filter(element => {
+        return activeFilters.some(filter => {
+          switch(filter) {
+            case 'alkali-metals':
+              return element.series && element.series.includes('alkali metal');
+            case 'alkaline-earth-metals':
+              return element.series && element.series.includes('alkaline earth');
+            case 'transition-metals':
+              return element.series && element.series.includes('transition');
+            case 'post-transition-metals':
+              return element.series && element.series.includes('post-transition');
+            case 'metalloids':
+              return element.series && element.series.includes('metalloid');
+            case 'nonmetals':
+              return element.series && element.series.includes('nonmetal') && !element.series.includes('noble gas');
+            case 'noble-gases':
+              return element.series && element.series.includes('noble gas');
+            case 'lanthanides':
+              return element.series && element.series.includes('lanthanide');
+            case 'actinides':
+              return element.series && element.series.includes('actinide');
+            case 'solid':
+              return element.phase === 'Solid';
+            case 'liquid':
+              return element.phase === 'Liquid';
+            case 'gas':
+              return element.phase === 'Gas';
+            case 'discovered-before-1800':
+              return element.discovered && element.discovered.year < 1800;
+            case 'discovered-1800-1900':
+              return element.discovered && element.discovered.year >= 1800 && element.discovered.year <= 1900;
+            case 'discovered-after-1900':
+              return element.discovered && element.discovered.year > 1900;
+            case 'high-electronegativity':
+              return element.electronegativity_pauling && element.electronegativity_pauling > 2.5;
+            case 'low-electronegativity':
+              return element.electronegativity_pauling && element.electronegativity_pauling < 1.5;
+            case 'high-melting-point':
+              return element.melting_point && element.melting_point > 1500;
+            case 'low-melting-point':
+              return element.melting_point && element.melting_point < 500;
+            case 'conductors':
+              return element.electrical_type === 'Conductor';
+            case 'semiconductors':
+              return element.series && element.series.includes('metalloid');
+            case 'insulators':
+              return element.series && (element.series.includes('nonmetal') || element.series.includes('noble gas'));
+            case 'biological-role':
+              return ['H', 'C', 'N', 'O', 'Na', 'Mg', 'P', 'S', 'Cl', 'K', 'Ca', 'Fe', 'Cu', 'Zn', 'I'].includes(element.symbol);
+            case 'radioactive':
+              return element.half_life && element.half_life !== 'Stable';
+            case 'synthetic':
+              return element.atomic_number >= 95;
+            case 'abundant-crust':
+              return element.abundance && element.abundance.crust > 0.1;
+            case 'rare-earth':
+              return element.series && element.series.includes('lanthanide');
+            case 's-block':
+              return element.block === 's';
+            case 'p-block':
+              return element.block === 'p';
+            case 'd-block':
+              return element.block === 'd';
+            case 'f-block':
+              return element.block === 'f';
+            default:
+              return false;
+          }
+        });
+      });
+      setSelectedElements(filteredElements);
+    } else if (selectedElements.length === 0) {
+      // If no filters and no selections, select all elements
+      setSelectedElements(elementData);
     }
     openChatbot();
   };
@@ -38,22 +117,6 @@ const TaskBar = ({
       // Pass the category, whether it's a toggle action (false for hover), and the hover state
       handleFilterClick(category, false, isHovering);
     }
-  };
-
-  // Handle legend item click
-  const handleLegendClick = (category) => {
-    setToggledLegends(prev => {
-      const isToggled = prev.includes(category);
-      if (isToggled) {
-        // If already toggled, remove it and turn off the filter
-        handleFilterClick(category, false);
-        return prev.filter(item => item !== category);
-      } else {
-        // If not toggled, add it and turn on the filter
-        handleFilterClick(category, true);
-        return [...prev, category];
-      }
-    });
   };
 
   // Toggle section open/close
@@ -108,7 +171,6 @@ const TaskBar = ({
 
                     <div
                       className={`legend-item ${toggledLegends.includes('alkali-metals') ? 'active' : ''}`}
-                      onClick={() => handleLegendClick('alkali-metals')}
                       onMouseEnter={() => handleLegendHover('alkali-metals', true)}
                       onMouseLeave={() => handleLegendHover('alkali-metals', false)}
                     >
@@ -124,7 +186,6 @@ const TaskBar = ({
                     </div>
                     <div
                       className={`legend-item ${toggledLegends.includes('alkaline-earth-metals') ? 'active' : ''}`}
-                      onClick={() => handleLegendClick('alkaline-earth-metals')}
                       onMouseEnter={() => handleLegendHover('alkaline-earth-metals', true)}
                       onMouseLeave={() => handleLegendHover('alkaline-earth-metals', false)}
                     >
@@ -140,7 +201,6 @@ const TaskBar = ({
                     </div>
                     <div
                       className={`legend-item ${toggledLegends.includes('transition-metals') ? 'active' : ''}`}
-                      onClick={() => handleLegendClick('transition-metals')}
                       onMouseEnter={() => handleLegendHover('transition-metals', true)}
                       onMouseLeave={() => handleLegendHover('transition-metals', false)}
                     >
@@ -156,7 +216,6 @@ const TaskBar = ({
                     </div>
                     <div
                       className={`legend-item ${toggledLegends.includes('post-transition-metals') ? 'active' : ''}`}
-                      onClick={() => handleLegendClick('post-transition-metals')}
                       onMouseEnter={() => handleLegendHover('post-transition-metals', true)}
                       onMouseLeave={() => handleLegendHover('post-transition-metals', false)}
                     >
@@ -172,7 +231,6 @@ const TaskBar = ({
                     </div>
                     <div
                       className={`legend-item ${toggledLegends.includes('metalloids') ? 'active' : ''}`}
-                      onClick={() => handleLegendClick('metalloids')}
                       onMouseEnter={() => handleLegendHover('metalloids', true)}
                       onMouseLeave={() => handleLegendHover('metalloids', false)}
                     >
@@ -188,7 +246,6 @@ const TaskBar = ({
                     </div>
                     <div
                       className={`legend-item ${toggledLegends.includes('nonmetals') ? 'active' : ''}`}
-                      onClick={() => handleLegendClick('nonmetals')}
                       onMouseEnter={() => handleLegendHover('nonmetals', true)}
                       onMouseLeave={() => handleLegendHover('nonmetals', false)}
                     >
@@ -204,7 +261,6 @@ const TaskBar = ({
                     </div>
                     <div
                       className={`legend-item ${toggledLegends.includes('noble-gases') ? 'active' : ''}`}
-                      onClick={() => handleLegendClick('noble-gases')}
                       onMouseEnter={() => handleLegendHover('noble-gases', true)}
                       onMouseLeave={() => handleLegendHover('noble-gases', false)}
                     >
@@ -220,7 +276,6 @@ const TaskBar = ({
                     </div>
                     <div
                       className={`legend-item ${toggledLegends.includes('lanthanides') ? 'active' : ''}`}
-                      onClick={() => handleLegendClick('lanthanides')}
                       onMouseEnter={() => handleLegendHover('lanthanides', true)}
                       onMouseLeave={() => handleLegendHover('lanthanides', false)}
                     >
@@ -236,7 +291,6 @@ const TaskBar = ({
                     </div>
                     <div
                       className={`legend-item ${toggledLegends.includes('actinides') ? 'active' : ''}`}
-                      onClick={() => handleLegendClick('actinides')}
                       onMouseEnter={() => handleLegendHover('actinides', true)}
                       onMouseLeave={() => handleLegendHover('actinides', false)}
                     >
@@ -521,6 +575,17 @@ const TaskBar = ({
             >
               <FaRobot />
               <span className="button-text">Chemistry Lab</span>
+            </button>
+          </div>
+
+          {/* Quick Info Button */}
+          <div className="taskbar-item">
+            <button
+              className="taskbar-button info-button"
+              onClick={handleQuickInfoClick}
+              title="View Components Guide"
+            >
+              <FaInfoCircle />
             </button>
           </div>
 

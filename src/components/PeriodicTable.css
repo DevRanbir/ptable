@@ -631,26 +631,39 @@ h1 {
   left: 17%;
 }
 
-.dot-lottie-react {
+.dot-lottie-react2 {
   position: absolute;
   bottom: -39px;
   width: 340px;
   height: 240px;
   transform: scaleX(1);
-  transition: 0.5s ease-in-out;
   animation: fadeIn 1s ease-in-out alternate;
 }
 
-.dot-lottie-react.external {
+.dot-lottie-react2.external {
   margin-left: -70px;
   bottom: 0px;
   margin-bottom: -20px;
 
 }
 
-.dot-lottie-react.internal {
+.dot-lottie-react2.internal {
   margin-left: -150px;
 
+}
+
+.imp {
+  position: fixed;
+  bottom: 0px;
+  margin-bottom: 31px;
+  right: 117px;
+  width: 45px;
+  height: 30px;
+  transform: scaleX(1);
+  animation: fadeIn 1s ease-in-out alternate;
+  margin-Right: 0px;
+  z-index: 1000;
+  pointer-events: none;
 }
 
 .element.selected {

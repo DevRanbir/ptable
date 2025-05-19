@@ -1,0 +1,148 @@
+.quick-info-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.quick-info-container {
+    background-color: #000000ab;
+    border-radius: 12px;
+    padding: 24px;
+    max-height: 75vh;
+    width: 80%;
+    overflow-y: hidden;
+    position: relative;
+    backdrop-filter: blur(4px);
+    border: 2px solid #ffffff24;
+    bottom: 40px;
+    padding-bottom: 60px;
+}
+
+.close-button {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  color: #666;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+.components-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.component-card {
+    background: linear-gradient(180deg, #000000 60%, #00000000);
+    border-radius: 20px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.component-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.component-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+    color: #ffffffc2;
+}
+
+.component-detail-card {
+    background: linear-gradient(0deg,#0000001f, #00000000);
+    border-radius: 8px;
+    padding: 3px 30px 30px 10px;
+    margin-top: 20px;
+}
+
+.details-list {
+  margin-top: 24px;
+  text-align: left;
+}
+
+.details-list h4 {
+    margin-bottom: 16px;
+    color: #ffffff;
+}
+
+.details-list ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.details-list li {
+  margin-bottom: 12px;
+  padding-left: 24px;
+  position: relative;
+}
+
+.details-list li:before {
+  content: '•';
+  position: absolute;
+  left: 8px;
+  color: #2196f3;
+}
+
+h2 {
+  text-align: center;
+  color: #ffffff;
+  margin-bottom: 24px;
+}
+
+h3 {
+  margin: 12px 0;
+  color: #ffffff;
+}
+
+p {
+    color: #fff8f8e6;
+    line-height: 1.5;
+}
+
+/* Add to TaskBar.css */
+.info-button {
+  color: #007bff;
+}
+
+.info-button:hover {
+  color: #0056b3;
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
+@media (max-width: 768px) {
+  .quick-info-container {
+    width: 95%;
+    padding: 16px;
+  }
+
+  .components-grid {
+    grid-template-columns: 1fr;
+  }
+}

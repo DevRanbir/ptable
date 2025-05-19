@@ -117,7 +117,7 @@ const ElementChatbot = ({ selectedElements, onClose, activeFilters }) => {
   const messagesEndRef = useRef(null);
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [hasUserSentMessage, setHasUserSentMessage] = useState(false);
-  const [hoveredElementSymbol, setHoveredElementSymbol] = useState(null);
+  const [hoveredElementSymbol ] = useState(null);
 
   // API key for Groq (in a real application, this should be stored securely on a backend)
   const GROQ_API_KEY = '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';
