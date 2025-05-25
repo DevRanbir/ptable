@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './TaskBar.css';
 import { FaChevronDown, FaChevronUp, FaFilter, FaRobot, FaTable, FaPalette } from 'react-icons/fa';
 import { FaInfoCircle } from 'react-icons/fa';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
 const TaskBar = ({
   activeFilters,
@@ -12,13 +13,17 @@ const TaskBar = ({
   selectedElements,
   setSelectedElements,
   elementData,
-  showQuickInfo,
-  setShowQuickInfo
+  setShowQuickInfo,
+  showGroupPeriod
 }) => {
   const [openSection, setOpenSection] = useState(null);
   const taskbarRef = useRef(null); // Create a ref for the taskbar element
   const [toggledLegends ] = useState([]);
   const [groupPeriodDisplay, setGroupPeriodDisplay] = useState('disabled');
+
+  const getNameImageClass2 = () => {
+    return showGroupPeriod === 'external' ? 'dot-lottie-react2 external' : 'dot-lottie-react2 internal';
+  };
 
 
   const handleQuickInfoClick = () => {
@@ -147,12 +152,19 @@ const TaskBar = ({
 
   return (
     <div className="taskbar" ref={taskbarRef}> {/* Attach the ref to the taskbar div */}
+      <DotLottieReact
+                src="https://lottie.host/e6c0bd4e-c611-432f-ab2a-9bedea410baa/NjaNHCwt2O.lottie"
+                loop 
+                autoplay
+                className={getNameImageClass2()}
+      />
       <div className="taskbar-content">
         {/* Left section - Legends */}
         <div className="taskbar-left">
 
             {/* Legends Section */}
           <div className="taskbar-item">
+            
             <button
               className={`taskbar-button ${openSection === 'legends' ? 'active' : ''}`}
               onClick={() => toggleSection('legends')}
@@ -587,6 +599,12 @@ const TaskBar = ({
             >
               <FaInfoCircle />
             </button>
+            <DotLottieReact
+              src="https://lottie.host/51287b2a-828c-49f1-be68-1972275667f7/HnvhE8dKwZ.lottie"
+              loop
+              autoplay
+              className='imp'
+            />
           </div>
 
         </div>

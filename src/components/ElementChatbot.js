@@ -120,7 +120,7 @@ const ElementChatbot = ({ selectedElements, onClose, activeFilters }) => {
   const [hoveredElementSymbol ] = useState(null);
 
   // API key for Groq (in a real application, this should be stored securely on a backend)
-  const GROQ_API_KEY = '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';
+  const GROQ_API_KEY = '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';
   
   // Function to call Groq API using fetch
   const callGroqApi = async (messages) => {
@@ -1240,7 +1240,7 @@ const ElementChatbot = ({ selectedElements, onClose, activeFilters }) => {
         },
         {
           role: 'user',
-          content: `What compound is formed when combining ${elementNames} (${elementSymbols})? Provide the result in the specified JSON format.`
+          content: `What compound is formed when combining ${elementNames} (${elementSymbols})? Provide the result in the specified JSON format, DO NOT ADD/WRITE ANY OTHER TEXT,IMP NOTES, COMMENTS ETC other than JSON.`
         }
       ];
       

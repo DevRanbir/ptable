@@ -126,14 +126,8 @@ p {
     line-height: 1.5;
 }
 
-/* Add to TaskBar.css */
-.info-button {
-  color: #007bff;
-}
-
 .info-button:hover {
-  color: #0056b3;
-  background-color: rgba(0, 123, 255, 0.1);
+  background: linear-gradient(135deg, #4a90e2, #7c4dff);
 }
 
 @media (max-width: 768px) {

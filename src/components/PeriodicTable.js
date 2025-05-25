@@ -5,7 +5,6 @@ import ElementDetails from './ElementDetails';
 import ElementChatbot from './ElementChatbot';
 import TaskBar from './TaskBar';
 import image from './Name.png';
-import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import QuickInfo from './QuickInfo';
 
 const PeriodicTable = () => {
@@ -30,9 +29,6 @@ const PeriodicTable = () => {
     return showGroupPeriod === 'external' ? 'name-image external' : 'name-image internal';
   };
 
-  const getNameImageClass2 = () => {
-    return showGroupPeriod === 'external' ? 'dot-lottie-react2 external' : 'dot-lottie-react2 internal';
-  };
 
   // Function to handle element selection
   const handleElementClick = (element, event) => {
@@ -416,19 +412,9 @@ const PeriodicTable = () => {
         elementData={elementData}
         showQuickInfo={showQuickInfo}
         setShowQuickInfo={setShowQuickInfo}
+        showGroupPeriod={showGroupPeriod}
       />
-      <DotLottieReact
-                src="https://lottie.host/e6c0bd4e-c611-432f-ab2a-9bedea410baa/NjaNHCwt2O.lottie"
-                loop 
-                autoplay
-                className={getNameImageClass2()}
-      />
-      <DotLottieReact
-      src="https://lottie.host/7c620340-10ed-4043-9bfe-b74e36a3a7c9/J3ehjkEJwD.lottie"
-      loop
-      autoplay
-      className='imp'
-    />
+
 
       {(selectedElements.length > 0 || activeFilters.length > 0) && (
         <button className="clear-all-button" onClick={handleClearAll}>

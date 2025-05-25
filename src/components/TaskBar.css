@@ -109,7 +109,7 @@
     position: absolute;
     bottom: 100%;
     left: -150px;
-    background-color: rgba(0, 0, 0, 0.9);
+    background-color: rgba(0, 0, 0, 0.95);
     border-radius: 4px;
     box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.3);
     padding: 15px;
@@ -246,16 +246,6 @@
 .legend-item.active .legend-color {
   box-shadow: 0 0 8px var(--highlight-color);
 }
-
-.legend-color.alkali { background-color: #ff6666; }
-.legend-color.alkaline { background-color: #ffdaaa; }
-.legend-color.transition { background-color: #ffc0c0; }
-.legend-color.post-transition { background-color: #cccccc; }
-.legend-color.metalloid { background-color: #cccc99; }
-.legend-color.nonmetal { background-color: #a1ffa1; }
-.legend-color.noble { background-color: #c0ffff; }
-.legend-color.lanthanide { background-color: #ffbfff; }
-.legend-color.actinide { background-color: #ff99cc; }
 
 .chatbot-button {
   background: linear-gradient(135deg, #4a90e2, #7c4dff);
@@ -407,43 +397,6 @@
   border-radius: 3px;
 }
 
-/* Element category colors */
-.legend-color.alkali {
-  background-color: #ff8a65;
-}
-
-.legend-color.alkaline {
-  background-color: #ffb74d;
-}
-
-.legend-color.transition {
-  background-color: #4fc3f7;
-}
-
-.legend-color.post-transition {
-  background-color: #81c784;
-}
-
-.legend-color.metalloid {
-  background-color: #9575cd;
-}
-
-.legend-color.nonmetal {
-  background-color: #4db6ac;
-}
-
-.legend-color.noble {
-  background-color: #7986cb;
-}
-
-.legend-color.lanthanide {
-  background-color: #e57373;
-}
-
-.legend-color.actinide {
-  background-color: #f06292;
-}
-
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .button-text {
@@ -544,5 +497,174 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+.imp {
+  position: absolute;
+  bottom: 0px;
+  margin-bottom: 5px;
+  right: -40px;
+  width: 80px;
+  height: 55px;
+  transform: scaleX(1);
+  animation: fadeIn 1sease -in-out alternate;
+  margin-Right: 0px;
+  z-index: 1000;
+  pointer-events: none;
+  filter: brightness(0.5) saturate(1000%) invert(1);
+}
+
+
+.dot-lottie-react2 {
+  position: absolute;
+  bottom: 23px;
+  height: 240px;
+  transform: scaleX(1);
+  animation: fadeIn 1s ease-in-out alternate;
+}
+
+.dot-lottie-react2.external {
+  margin-left: -10px;
+
+}
+
+.dot-lottie-react2.internal {
+  margin-left: -25px;
+
+}
+
+
+@media (orientation: landscape) and (max-height: 480px) {
+  .taskbar-item .taskbar-button[title="Group/Period Display"] {
+    display: none;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 480px){
+  .taskbar-dropdown {
+    left: 90%;
+  }
+  .filters-dropdown {
+    width: 96vw;
+    max-height: 85vh;
+}
+}
+
+
+/* Mobile responsive styles for filter categories */
+@media (orientation: landscape) and (max-height: 480px) {
+  .filter-categories {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+    gap: 20px;
+    justify-items: center;
+    align-content: stretch;
+    align-items: end;
+    justify-content: center;
+    overflow-y: scroll;
+}
+
+  .filter-category h4 {
+    font-size: 12px;
+    margin-bottom: 6px;
+    padding-bottom: 3px;
+  }
+
+  .dot-lottie-react2{
+    max-width: 190px;
+    max-height: 160px;
+    bottom: 38px;
+    margin-left: 55px !important;
+  }
+
+  .active-filters {
+    margin-top: 0;
+    padding: 0;
+    overflow: scroll;
+  }
+
+  .filter-buttons {
+    gap: 3px;
+  }
+
+  .filter-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .active-filters {
+    min-height: 25px;
+    padding: 6px 0;
+    gap: 6px;
+  }
+
+  .active-filter-tag {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .clear-filters {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+  .filter-category h4 {
+    font-size: 11px;
+    margin-bottom: 4px;
+  }
+
+  .filter-btn {
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+
+  .active-filter-tag {
+    padding: 3px 6px;
+    font-size: 10px;
+  }
+
+  .clear-filters {
+    padding: 3px 6px;
+    font-size: 10px;
+  }
+}
+
+/* Landscape mode for mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .filter-categories {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .filter-category h4 {
+    font-size: 11px;
+    margin-bottom: 4px;
+  }
+
+  .filter-buttons {
+    gap: 2px;
+  }
+
+  .filter-btn {
+    padding: 4px 6px;
+    font-size: 10px;
+  }
+
+  .active-filters {
+    padding: 4px 0;
+  }
+
+  .active-filter-tag {
+    padding: 3px 5px;
+    font-size: 10px;
+  }
+
+  .clear-filters {
+    padding: 3px 5px;
+    font-size: 10px;
   }
 }
