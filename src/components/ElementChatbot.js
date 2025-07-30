@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import './ElementChatbot.css';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis,Cell, Tooltip, ResponsiveContainer} from 'recharts';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import { db } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 function CombinationResultView({ result }) {
   // If result is a string (from the initial condition check), render it directly
@@ -118,17 +120,44 @@ const ElementChatbot = ({ selectedElements, onClose, activeFilters }) => {
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [hasUserSentMessage, setHasUserSentMessage] = useState(false);
   const [hoveredElementSymbol ] = useState(null);
+  const [groqApiKey, setGroqApiKey] = useState('');
 
-  // API key for Groq (in a real application, this should be stored securely on a backend)
-  const GROQ_API_KEY = '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';
+  // Function to fetch API key from Firebase
+  const fetchApiKey = async () => {
+    try {
+      const docRef = doc(db, 'api-keys', 'REACT_APP_GROQ_API_KEY_1');
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setGroqApiKey(data.value);
+        console.log('API key fetched successfully');
+      } else {
+        console.error('No API key document found! Make sure the document exists in Firestore.');
+      }
+    } catch (error) {
+      console.error('Error fetching API key:', error);
+      console.error('Please check your Firestore security rules and ensure the document exists.');
+      // You could also set a fallback or show a user-friendly error message
+    }
+  };
+
+  // Fetch API key on component mount
+  useEffect(() => {
+    fetchApiKey();
+  }, []);
   
   // Function to call Groq API using fetch
   const callGroqApi = async (messages) => {
+    if (!groqApiKey) {
+      return "API key not loaded yet. Please try again in a moment.";
+    }
+    
     try {
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${GROQ_API_KEY}`,
+          'Authorization': `Bearer ${groqApiKey}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
